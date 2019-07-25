@@ -56,18 +56,6 @@ func fixGQLApplication(id, name, description string) *graphql.Application {
 	}
 }
 
-func fixModelApplicationWithLabels(id, name string, labels map[string]interface{}) *model.Application {
-	return &model.Application{
-		ID: id,
-		Status: &model.ApplicationStatus{
-			Condition: model.ApplicationStatusConditionInitial,
-		},
-		Name:        name,
-		Description: nil,
-		Labels:      labels,
-	}
-}
-
 func fixDetailedModelApplication(t *testing.T, id, name, description string) *model.Application {
 	time, err := time.Parse(time.RFC3339, "2002-10-02T10:00:00-05:00")
 	require.NoError(t, err)
@@ -82,9 +70,6 @@ func fixDetailedModelApplication(t *testing.T, id, name, description string) *mo
 		Name:        name,
 		Description: &description,
 		Tenant:      "tenant",
-		Labels: map[string]interface{}{
-			"test": []string{"val", "val2"},
-		},
 		HealthCheckURL: &url,
 	}
 }
@@ -102,9 +87,6 @@ func fixDetailedGQLApplication(t *testing.T, id, name, description string) *grap
 		},
 		Name:        name,
 		Description: &description,
-		Labels: map[string]interface{}{
-			"test": []string{"val", "val2"},
-		},
 		HealthCheckURL: &url,
 	}
 }

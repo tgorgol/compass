@@ -3,11 +3,10 @@ package application
 import (
 	"context"
 
-	"github.com/pkg/errors"
-
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/graphql"
+	"github.com/pkg/errors"
 )
 
 //go:generate mockery -name=ApplicationService -output=automock -outpkg=automock -case=underscore
@@ -17,9 +16,11 @@ type ApplicationService interface {
 	Get(ctx context.Context, id string) (*model.Application, error)
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, filter []*labelfilter.LabelFilter, pageSize *int, cursor *string) (*model.ApplicationPage, error)
-	SetLabel(ctx context.Context, applicationID string, key string, value interface{}) error
-	DeleteLabel(ctx context.Context, applicationID string, key string) error
 	ListByRuntimeID(ctx context.Context, runtimeID string, pageSize *int, cursor *string) (*model.ApplicationPage, error)
+	SetLabel(ctx context.Context, applicationID string, label *model.Label) error
+	GetLabel(ctx context.Context, applicationID string, key string) (*model.Label, error)
+	ListLabels(ctx context.Context, applicationID string) (map[string]interface{}, error)
+	DeleteLabel(ctx context.Context, applicationID string, key string) error
 }
 
 //go:generate mockery -name=ApplicationConverter -output=automock -outpkg=automock -case=underscore
@@ -230,7 +231,10 @@ func (r *Resolver) DeleteApplication(ctx context.Context, id string) (*graphql.A
 	return deletedApp, nil
 }
 func (r *Resolver) SetApplicationLabel(ctx context.Context, applicationID string, key string, value interface{}) (*graphql.Label, error) {
-	err := r.appSvc.SetLabel(ctx, applicationID, key, value)
+	err := r.appSvc.SetLabel(ctx, applicationID, &model.Label{
+		Key:key,
+		Value: value,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -242,12 +246,10 @@ func (r *Resolver) SetApplicationLabel(ctx context.Context, applicationID string
 }
 
 func (r *Resolver) DeleteApplicationLabel(ctx context.Context, applicationID string, key string) (*graphql.Label, error) {
-	app, err := r.appSvc.Get(ctx, applicationID)
+	labelValue, err := r.appSvc.GetLabel(ctx, applicationID, key)
 	if err != nil {
 		return nil, err
 	}
-
-	value := app.Labels[key]
 
 	err = r.appSvc.DeleteLabel(ctx, applicationID, key)
 	if err != nil {
@@ -256,7 +258,7 @@ func (r *Resolver) DeleteApplicationLabel(ctx context.Context, applicationID str
 
 	return &graphql.Label{
 		Key:   key,
-		Value: value,
+		Value: labelValue,
 	}, nil
 }
 
@@ -346,4 +348,17 @@ func (r *Resolver) Webhooks(ctx context.Context, obj *graphql.Application) ([]*g
 	gqlWebhooks := r.webhookConverter.MultipleToGraphQL(webhooks)
 
 	return gqlWebhooks, nil
+}
+
+func (r *Resolver) Labels(ctx context.Context, obj *graphql.Application, key *string) (graphql.Labels, error) {
+	if obj == nil {
+		return nil, errors.New("Runtime cannot be empty")
+	}
+
+	labels, err := r.appSvc.ListLabels(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return labels, nil
 }

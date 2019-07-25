@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+	"context"
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/pagination"
@@ -15,7 +17,7 @@ func NewRepository() *inMemoryRepository {
 	return &inMemoryRepository{store: make(map[string]*model.Application)}
 }
 
-func (r *inMemoryRepository) GetByID(tenant, id string) (*model.Application, error) {
+func (r *inMemoryRepository) GetByID(ctx context.Context, tenant, id string) (*model.Application, error) {
 	application := r.store[id]
 
 	if application == nil || application.Tenant != tenant {
@@ -25,7 +27,7 @@ func (r *inMemoryRepository) GetByID(tenant, id string) (*model.Application, err
 	return application, nil
 }
 
-func (r *inMemoryRepository) Exist(tenant, id string) (bool, error) {
+func (r *inMemoryRepository) Exists(ctx context.Context, tenant, id string) (bool, error) {
 	application := r.store[id]
 
 	if application == nil || application.Tenant != tenant {
@@ -36,7 +38,7 @@ func (r *inMemoryRepository) Exist(tenant, id string) (bool, error) {
 }
 
 // TODO: Make filtering and paging
-func (r *inMemoryRepository) List(tenant string, filter []*labelfilter.LabelFilter, pageSize *int, cursor *string) (*model.ApplicationPage, error) {
+func (r *inMemoryRepository) List(ctx context.Context, tenant string, filter []*labelfilter.LabelFilter, pageSize *int, cursor *string) (*model.ApplicationPage, error) {
 	var items []*model.Application
 	for _, item := range r.store {
 		if item.Tenant == tenant {
@@ -54,9 +56,10 @@ func (r *inMemoryRepository) List(tenant string, filter []*labelfilter.LabelFilt
 		},
 	}, nil
 }
+
 
 // TODO: Make filtering and paging
-func (r *inMemoryRepository) ListByRuntimeID(tenant, runtimeID string, pageSize *int, cursor *string) (*model.ApplicationPage, error) {
+func (r *inMemoryRepository) ListByRuntimeID(ctx context.Context, tenant, runtimeID string, pageSize *int, cursor *string) (*model.ApplicationPage, error) {
 	var items []*model.Application
 	for _, item := range r.store {
 		if item.Tenant == tenant {
@@ -75,7 +78,7 @@ func (r *inMemoryRepository) ListByRuntimeID(tenant, runtimeID string, pageSize 
 	}, nil
 }
 
-func (r *inMemoryRepository) Create(item *model.Application) error {
+func (r *inMemoryRepository) Create(ctx context.Context, item *model.Application) error {
 	if item == nil {
 		return errors.New("item can not be empty")
 	}
@@ -90,7 +93,7 @@ func (r *inMemoryRepository) Create(item *model.Application) error {
 	return nil
 }
 
-func (r *inMemoryRepository) Update(item *model.Application) error {
+func (r *inMemoryRepository) Update(ctx context.Context, item *model.Application) error {
 	if item == nil {
 		return errors.New("item can not be empty")
 	}
@@ -112,7 +115,7 @@ func (r *inMemoryRepository) Update(item *model.Application) error {
 	return nil
 }
 
-func (r *inMemoryRepository) Delete(item *model.Application) error {
+func (r *inMemoryRepository) Delete(ctx context.Context, item *model.Application) error {
 	if item == nil {
 		return nil
 	}
