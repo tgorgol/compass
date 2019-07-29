@@ -164,12 +164,15 @@ func (s *service) Delete(ctx context.Context, id string) error {
 		return errors.Wrapf(err, "while loading tenant from context")
 	}
 
-	rtm, err := s.Get(ctx, id)
+	exists, err := s.repo.Exists(ctx, rtmTenant, id)
 	if err != nil {
 		return errors.Wrap(err, "while getting Runtime")
 	}
+	if !exists {
+		return fmt.Errorf("Runtime %s doesn't exist", id)
+	}
 
-	err = s.repo.Delete(ctx, rtm)
+	err = s.repo.Delete(ctx, id)
 	if err != nil {
 		return errors.Wrapf(err, "while creating labels for Runtime")
 	}

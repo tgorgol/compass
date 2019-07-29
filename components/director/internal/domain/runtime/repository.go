@@ -21,6 +21,24 @@ func NewPostgresRepository() *pgRepository {
 	return &pgRepository{}
 }
 
+func (r *pgRepository) Exists(ctx context.Context, tenant, id string) (bool, error) {
+	persist, err := persistence.FromCtx(ctx)
+	if err != nil {
+		return false, errors.Wrap(err, "while fetching DB from context")
+	}
+
+	stmt := fmt.Sprintf(`SELECT 1 FROM %s WHERE "id" = $1 AND "tenant_id" = $2`,
+		runtimeTable)
+
+	var count int
+	err = persist.Get(&count, stmt, id, tenant)
+	if err != nil {
+		return false, errors.Wrap(err, "while fetching runtime from DB")
+	}
+
+	return count == 1, nil
+}
+
 func (r *pgRepository) GetByID(ctx context.Context, tenant, id string) (*model.Runtime, error) {
 	persist, err := persistence.FromCtx(ctx)
 	if err != nil {
@@ -37,8 +55,11 @@ func (r *pgRepository) GetByID(ctx context.Context, tenant, id string) (*model.R
 	}
 
 	runtimeModel, err := runtimeEnt.ToModel()
+	if err != nil {
+		return nil, errors.Wrap(err, "while creating runtime model from entity")
+	}
 
-	return runtimeModel, errors.Wrap(err, "while creating runtime model from entity")
+	return runtimeModel, nil
 }
 
 // TODO: Make filtering and paging
