@@ -17,7 +17,7 @@ type ApplicationService interface {
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, filter []*labelfilter.LabelFilter, pageSize *int, cursor *string) (*model.ApplicationPage, error)
 	ListByRuntimeID(ctx context.Context, runtimeID string, pageSize *int, cursor *string) (*model.ApplicationPage, error)
-	SetLabel(ctx context.Context, applicationID string, label *model.Label) error
+	SetLabel(ctx context.Context, label *model.LabelInput) error
 	GetLabel(ctx context.Context, applicationID string, key string) (*model.Label, error)
 	ListLabels(ctx context.Context, applicationID string) (map[string]interface{}, error)
 	DeleteLabel(ctx context.Context, applicationID string, key string) error
@@ -231,9 +231,11 @@ func (r *Resolver) DeleteApplication(ctx context.Context, id string) (*graphql.A
 	return deletedApp, nil
 }
 func (r *Resolver) SetApplicationLabel(ctx context.Context, applicationID string, key string, value interface{}) (*graphql.Label, error) {
-	err := r.appSvc.SetLabel(ctx, applicationID, &model.Label{
+	err := r.appSvc.SetLabel(ctx, &model.LabelInput{
 		Key:key,
 		Value: value,
+		ObjectType: model.ApplicationLabelableObject,
+		ObjectID: applicationID,
 	})
 	if err != nil {
 		return nil, err

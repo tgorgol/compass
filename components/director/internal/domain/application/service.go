@@ -59,7 +59,7 @@ type EventAPIRepository interface {
 //go:generate mockery -name=LabelUpsertService -output=automock -outpkg=automock -case=underscore
 type LabelUpsertService interface {
 	UpsertMultipleLabels(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string, labels map[string]interface{}) error
-	UpsertLabel(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string, label *model.Label) error
+	UpsertLabel(ctx context.Context,  tenant string, labelInput *model.LabelInput) error
 }
 
 //go:generate mockery -name=UIDService -output=automock -outpkg=automock -case=underscore
@@ -235,21 +235,21 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *service) SetLabel(ctx context.Context, applicationID string, label *model.Label) error {
+func (s *service) SetLabel(ctx context.Context, labelInput *model.LabelInput) error {
 	appTenant, err := tenant.LoadFromContext(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "while loading tenant from context")
 	}
 
-	appExists, err := s.appRepo.Exists(ctx, appTenant, applicationID)
+	appExists, err := s.appRepo.Exists(ctx, appTenant, labelInput.ObjectID)
 	if err != nil {
 		return errors.Wrap(err, "while checking Application existence")
 	}
 	if !appExists {
-		return fmt.Errorf("Application with ID %s doesn't exist", applicationID)
+		return fmt.Errorf("Application with ID %s doesn't exist", labelInput.ObjectID)
 	}
 
-	err = s.labelUpsertService.UpsertLabel(ctx, appTenant, model.ApplicationLabelableObject, applicationID, label)
+	err = s.labelUpsertService.UpsertLabel(ctx, appTenant, labelInput)
 	if err != nil {
 		return errors.Wrapf(err, "while creating label for Application")
 	}

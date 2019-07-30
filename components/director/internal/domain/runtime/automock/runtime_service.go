@@ -153,13 +153,13 @@ func (_m *RuntimeService) ListLabels(ctx context.Context, runtimeID string) (map
 	return r0, r1
 }
 
-// SetLabel provides a mock function with given fields: ctx, runtimeID, label
-func (_m *RuntimeService) SetLabel(ctx context.Context, runtimeID string, label *model.Label) error {
-	ret := _m.Called(ctx, runtimeID, label)
+// SetLabel provides a mock function with given fields: ctx, label
+func (_m *RuntimeService) SetLabel(ctx context.Context, label *model.LabelInput) error {
+	ret := _m.Called(ctx, label)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *model.Label) error); ok {
-		r0 = rf(ctx, runtimeID, label)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.LabelInput) error); ok {
+		r0 = rf(ctx, label)
 	} else {
 		r0 = ret.Error(0)
 	}

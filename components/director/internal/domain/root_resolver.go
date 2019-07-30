@@ -59,7 +59,7 @@ func NewRootResolver(transact persistence.Transactioner) *RootResolver {
 	docRepo := document.NewRepository()
 
 	uidService := uid.NewService()
-	labelUpsertService := label.NewLabelUpsertService(labelRepo, labelDefinitionRepo)
+	labelUpsertService := label.NewLabelUpsertService(labelRepo, labelDefinitionRepo, uidService)
 
 	appSvc := application.NewService(applicationRepo, webhookRepo, apiRepo, eventAPIRepo, docRepo, labelRepo, labelUpsertService, uidService)
 	apiSvc := api.NewService(apiRepo, uidService)

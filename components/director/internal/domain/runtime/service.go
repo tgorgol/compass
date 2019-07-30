@@ -33,7 +33,7 @@ type LabelRepository interface {
 //go:generate mockery -name=LabelUpsertService -output=automock -outpkg=automock -case=underscore
 type LabelUpsertService interface {
 	UpsertMultipleLabels(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string, labels map[string]interface{}) error
-	UpsertLabel(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string, label *model.Label) error
+	UpsertLabel(ctx context.Context,  tenant string, labelInput *model.LabelInput) error
 }
 
 //go:generate mockery -name=UIDService -output=automock -outpkg=automock -case=underscore
@@ -185,21 +185,21 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (s *service) SetLabel(ctx context.Context, runtimeID string, label *model.Label) error {
+func (s *service) SetLabel(ctx context.Context, labelInput *model.LabelInput) error {
 	rtmTenant, err := tenant.LoadFromContext(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "while loading tenant from context")
 	}
 
-	rtmExists, err := s.repo.Exists(ctx, rtmTenant, runtimeID)
+	rtmExists, err := s.repo.Exists(ctx, rtmTenant, labelInput.ObjectID)
 	if err != nil {
 		return errors.Wrap(err, "while checking Runtime existence")
 	}
 	if !rtmExists {
-		return fmt.Errorf("Runtime with ID %s doesn't exist", runtimeID)
+		return fmt.Errorf("Runtime with ID %s doesn't exist", labelInput.ObjectID)
 	}
 
-	err = s.labelUpsertService.UpsertLabel(ctx, rtmTenant, model.RuntimeLabelableObject, runtimeID, label)
+	err = s.labelUpsertService.UpsertLabel(ctx, rtmTenant, labelInput)
 	if err != nil {
 		return errors.Wrapf(err, "while creating label for Runtime")
 	}

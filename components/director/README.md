@@ -7,6 +7,7 @@ The Director exposes GraphQL API.
 After you introduce changes in the GraphQL schema, run the `gqlgen.sh` script.
 
 To run Director with PostgreSQL container on local machine with latest DB schema, run the following command:
+
 ```bash
 ./run.sh
 ```

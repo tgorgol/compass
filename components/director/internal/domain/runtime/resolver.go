@@ -25,7 +25,7 @@ type RuntimeService interface {
 	Get(ctx context.Context, id string) (*model.Runtime, error)
 	Delete(ctx context.Context, id string) error
 	List(ctx context.Context, filter []*labelfilter.LabelFilter, pageSize *int, cursor *string) (*model.RuntimePage, error)
-	SetLabel(ctx context.Context, runtimeID string, label *model.Label) error
+	SetLabel(ctx context.Context, label *model.LabelInput) error
 	GetLabel(ctx context.Context, runtimeID string, key string) (*model.Label, error)
 	ListLabels(ctx context.Context, runtimeID string) (map[string]interface{}, error)
 	DeleteLabel(ctx context.Context, runtimeID string, key string) error
@@ -218,9 +218,11 @@ func (r *Resolver) SetRuntimeLabel(ctx context.Context, runtimeID string, key st
 
 	ctx = r.ctxvs.WithValue(ctx, persistence.PersistenceCtxKey, tx)
 
-	err = r.svc.SetLabel(ctx, runtimeID, &model.Label{
+	err = r.svc.SetLabel(ctx, &model.LabelInput{
 		Key:key,
 		Value: value,
+		ObjectType: model.RuntimeLabelableObject,
+		ObjectID: runtimeID,
 	})
 	if err != nil {
 		return nil, err
