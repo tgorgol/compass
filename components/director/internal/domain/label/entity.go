@@ -49,7 +49,7 @@ func EntityFromModel(in *model.Label) (*Entity, error) {
 }
 
 // ToModel converts Entity entity to Runtime model
-func (e *Entity) ToModel() (*model.Label, error) {
+func (e *Entity) ToModel() *model.Label {
 	var objectType model.LabelableObject
 	var objectID string
 
@@ -68,5 +68,5 @@ func (e *Entity) ToModel() (*model.Label, error) {
 		ObjectType: objectType,
 		Key:        e.Key,
 		Value:      e.Value,
-	}, nil
+	}
 }

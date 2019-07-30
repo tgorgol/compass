@@ -27,7 +27,7 @@ type RuntimeService interface {
 	List(ctx context.Context, filter []*labelfilter.LabelFilter, pageSize *int, cursor *string) (*model.RuntimePage, error)
 	SetLabel(ctx context.Context, label *model.LabelInput) error
 	GetLabel(ctx context.Context, runtimeID string, key string) (*model.Label, error)
-	ListLabels(ctx context.Context, runtimeID string) (map[string]interface{}, error)
+	ListLabels(ctx context.Context, runtimeID string) (map[string]*model.Label, error)
 	DeleteLabel(ctx context.Context, runtimeID string, key string) error
 }
 
@@ -274,10 +274,16 @@ func (r *Resolver) Labels(ctx context.Context, obj *graphql.Runtime, key *string
 		return nil, errors.New("Runtime cannot be empty")
 	}
 
-	labels, err := r.svc.ListLabels(ctx, obj.ID)
+	itemMap, err := r.svc.ListLabels(ctx, obj.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return labels, nil
+	resultLabels := make(map[string]interface{})
+
+	for key, value := range itemMap {
+		resultLabels[key] = value
+	}
+
+	return resultLabels, nil
 }

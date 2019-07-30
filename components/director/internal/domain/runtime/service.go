@@ -25,7 +25,7 @@ type RuntimeRepository interface {
 //go:generate mockery -name=LabelRepository -output=automock -outpkg=automock -case=underscore
 type LabelRepository interface {
 	GetByKey(ctx context.Context, tenant string, objectType model.LabelableObject, objectID, key string) (*model.Label, error)
-	List(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string) (map[string]interface{}, error)
+	List(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string) (map[string]*model.Label, error)
 	Delete(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string, key string) error
 	DeleteAll(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string) error
 }
@@ -229,8 +229,7 @@ func (s *service) GetLabel(ctx context.Context, runtimeID string, key string) (*
 	return label, nil
 }
 
-//TODO: In future consider using `map[string]*model.Label`
-func (s *service) ListLabels(ctx context.Context, runtimeID string) (map[string]interface{}, error) {
+func (s *service) ListLabels(ctx context.Context, runtimeID string) (map[string]*model.Label, error) {
 	rtmTenant, err := tenant.LoadFromContext(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "while loading tenant from context")
