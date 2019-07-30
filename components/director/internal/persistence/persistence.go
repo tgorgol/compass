@@ -88,6 +88,7 @@ func (db *db) RollbackUnlessCommited(tx PersistenceTx) {
 type PersistenceTx interface {
 	Commit() error
 	Rollback() error
+	PersistenceOp
 }
 
 //go:generate mockery -name=PersistenceOp -output=automock -outpkg=automock -case=underscore

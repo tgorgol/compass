@@ -2,12 +2,18 @@ package application
 
 import (
 	"context"
+	"github.com/kyma-incubator/compass/components/director/internal/persistence"
 
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/graphql"
 	"github.com/pkg/errors"
 )
+
+//go:generate mockery -name=ContextValueSetter -output=automock -outpkg=automock -case=underscore
+type ContextValueSetter interface {
+	WithValue(parent context.Context, key interface{}, val interface{}) context.Context
+}
 
 //go:generate mockery -name=ApplicationService -output=automock -outpkg=automock -case=underscore
 type ApplicationService interface {
@@ -91,6 +97,9 @@ type WebhookConverter interface {
 }
 
 type Resolver struct {
+	transact       persistence.Transactioner
+	ctxValueSetter ContextValueSetter
+
 	appSvc       ApplicationService
 	appConverter ApplicationConverter
 
@@ -105,8 +114,10 @@ type Resolver struct {
 	eventApiConverter EventAPIConverter
 }
 
-func NewResolver(svc ApplicationService, apiSvc APIService, eventAPISvc EventAPIService, documentSvc DocumentService, webhookSvc WebhookService, appConverter ApplicationConverter, documentConverter DocumentConverter, webhookConverter WebhookConverter, apiConverter APIConverter, eventAPIConverter EventAPIConverter) *Resolver {
+func NewResolver(transact persistence.Transactioner, ctxValueSetter ContextValueSetter, svc ApplicationService, apiSvc APIService, eventAPISvc EventAPIService, documentSvc DocumentService, webhookSvc WebhookService, appConverter ApplicationConverter, documentConverter DocumentConverter, webhookConverter WebhookConverter, apiConverter APIConverter, eventAPIConverter EventAPIConverter) *Resolver {
 	return &Resolver{
+		transact:          transact,
+		ctxValueSetter:    ctxValueSetter,
 		appSvc:            svc,
 		apiSvc:            apiSvc,
 		eventAPISvc:       eventAPISvc,
@@ -184,12 +195,25 @@ func (r *Resolver) ApplicationsForRuntime(ctx context.Context, runtimeID string,
 func (r *Resolver) CreateApplication(ctx context.Context, in graphql.ApplicationInput) (*graphql.Application, error) {
 	convertedIn := r.appConverter.InputFromGraphQL(in)
 
+	tx, err := r.transact.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer r.transact.RollbackUnlessCommited(tx)
+
+	ctx = r.ctxValueSetter.WithValue(ctx, persistence.PersistenceCtxKey, tx)
+
 	id, err := r.appSvc.Create(ctx, convertedIn)
 	if err != nil {
 		return nil, err
 	}
 
 	app, err := r.appSvc.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +225,15 @@ func (r *Resolver) CreateApplication(ctx context.Context, in graphql.Application
 func (r *Resolver) UpdateApplication(ctx context.Context, id string, in graphql.ApplicationInput) (*graphql.Application, error) {
 	convertedIn := r.appConverter.InputFromGraphQL(in)
 
-	err := r.appSvc.Update(ctx, id, convertedIn)
+	tx, err := r.transact.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer r.transact.RollbackUnlessCommited(tx)
+
+	ctx = r.ctxValueSetter.WithValue(ctx, persistence.PersistenceCtxKey, tx)
+
+	err = r.appSvc.Update(ctx, id, convertedIn)
 	if err != nil {
 		return nil, err
 	}
@@ -211,11 +243,24 @@ func (r *Resolver) UpdateApplication(ctx context.Context, id string, in graphql.
 		return nil, err
 	}
 
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
 	gqlApp := r.appConverter.ToGraphQL(app)
 
 	return gqlApp, nil
 }
 func (r *Resolver) DeleteApplication(ctx context.Context, id string) (*graphql.Application, error) {
+	tx, err := r.transact.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer r.transact.RollbackUnlessCommited(tx)
+
+	ctx = r.ctxValueSetter.WithValue(ctx, persistence.PersistenceCtxKey, tx)
+
 	app, err := r.appSvc.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -228,15 +273,33 @@ func (r *Resolver) DeleteApplication(ctx context.Context, id string) (*graphql.A
 		return nil, err
 	}
 
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
 	return deletedApp, nil
 }
 func (r *Resolver) SetApplicationLabel(ctx context.Context, applicationID string, key string, value interface{}) (*graphql.Label, error) {
-	err := r.appSvc.SetLabel(ctx, &model.LabelInput{
+	tx, err := r.transact.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer r.transact.RollbackUnlessCommited(tx)
+
+	ctx = r.ctxValueSetter.WithValue(ctx, persistence.PersistenceCtxKey, tx)
+
+	err = r.appSvc.SetLabel(ctx, &model.LabelInput{
 		Key:key,
 		Value: value,
 		ObjectType: model.ApplicationLabelableObject,
 		ObjectID: applicationID,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
@@ -248,12 +311,25 @@ func (r *Resolver) SetApplicationLabel(ctx context.Context, applicationID string
 }
 
 func (r *Resolver) DeleteApplicationLabel(ctx context.Context, applicationID string, key string) (*graphql.Label, error) {
+	tx, err := r.transact.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer r.transact.RollbackUnlessCommited(tx)
+
+	ctx = r.ctxValueSetter.WithValue(ctx, persistence.PersistenceCtxKey, tx)
+
 	labelValue, err := r.appSvc.GetLabel(ctx, applicationID, key)
 	if err != nil {
 		return nil, err
 	}
 
 	err = r.appSvc.DeleteLabel(ctx, applicationID, key)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
@@ -354,10 +430,23 @@ func (r *Resolver) Webhooks(ctx context.Context, obj *graphql.Application) ([]*g
 
 func (r *Resolver) Labels(ctx context.Context, obj *graphql.Application, key *string) (graphql.Labels, error) {
 	if obj == nil {
-		return nil, errors.New("Runtime cannot be empty")
+		return nil, errors.New("Application cannot be empty")
 	}
 
+	tx, err := r.transact.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer r.transact.RollbackUnlessCommited(tx)
+
+	ctx = r.ctxValueSetter.WithValue(ctx, persistence.PersistenceCtxKey, tx)
+
 	itemMap, err := r.appSvc.ListLabels(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}

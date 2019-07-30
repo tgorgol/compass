@@ -274,7 +274,24 @@ func (r *Resolver) Labels(ctx context.Context, obj *graphql.Runtime, key *string
 		return nil, errors.New("Runtime cannot be empty")
 	}
 
+	tx, err := r.transact.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer r.transact.RollbackUnlessCommited(tx)
+
+	ctx = r.ctxvs.WithValue(ctx, persistence.PersistenceCtxKey, tx)
+
+	if obj == nil {
+		return nil, errors.New("Runtime cannot be empty")
+	}
+
 	itemMap, err := r.svc.ListLabels(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}

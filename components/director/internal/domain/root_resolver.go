@@ -72,7 +72,7 @@ func NewRootResolver(transact persistence.Transactioner) *RootResolver {
 	appCtx := appcontext.NewAppContext()
 
 	return &RootResolver{
-		app:         application.NewResolver(appSvc, apiSvc, eventAPISvc, docSvc, webhookSvc, appConverter, docConverter, webhookConverter, apiConverter, eventAPIConverter),
+		app:         application.NewResolver(transact, appCtx, appSvc, apiSvc, eventAPISvc, docSvc, webhookSvc, appConverter, docConverter, webhookConverter, apiConverter, eventAPIConverter),
 		api:         api.NewResolver(apiSvc, appSvc, apiConverter, authConverter),
 		eventAPI:    eventapi.NewResolver(eventAPISvc, appSvc, eventAPIConverter),
 		doc:         document.NewResolver(docSvc, appSvc, frConverter),
