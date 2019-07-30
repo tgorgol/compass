@@ -6,7 +6,6 @@ import (
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/jsonschema"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 //go:generate mockery -name=LabelRepository -output=automock -outpkg=automock -case=underscore
@@ -17,7 +16,7 @@ type LabelRepository interface {
 
 //go:generate mockery -name=LabelDefinitionRepository -output=automock -outpkg=automock -case=underscore
 type LabelDefinitionRepository interface {
-	Create(ctx context.Context, tenant string, labelDefinition *model.LabelDefinition) error
+	Create(ctx context.Context, def model.LabelDefinition) error
 	Exists(ctx context.Context, tenant string, key string) (bool, error)
 	GetByKey(ctx context.Context, tenant string, key string) (*model.LabelDefinition, error)
 }
@@ -53,7 +52,7 @@ func (s *labelUpsertService) UpsertMultipleLabels(ctx context.Context, tenant st
 	return nil
 }
 
-func (s *labelUpsertService) UpsertLabel(ctx context.Context,  tenant string, labelInput *model.LabelInput) error {
+func (s *labelUpsertService) UpsertLabel(ctx context.Context, tenant string, labelInput *model.LabelInput) error {
 	exists, err := s.labelDefinitionRepo.Exists(ctx, tenant, labelInput.Key)
 	if err != nil {
 		return errors.Wrapf(err, "while checking if LabelDefinition for key %s exists", labelInput.Key)
@@ -61,7 +60,7 @@ func (s *labelUpsertService) UpsertLabel(ctx context.Context,  tenant string, la
 
 	if !exists {
 		labelDefinitionID := s.uidService.Generate()
-		err := s.labelDefinitionRepo.Create(ctx, tenant, &model.LabelDefinition{
+		err := s.labelDefinitionRepo.Create(ctx, model.LabelDefinition{
 			ID:     labelDefinitionID,
 			Tenant: tenant,
 			Key:    labelInput.Key,
@@ -80,13 +79,11 @@ func (s *labelUpsertService) UpsertLabel(ctx context.Context,  tenant string, la
 	var id string
 	label, err := s.labelRepo.GetByKey(ctx, tenant, labelInput.ObjectType, labelInput.ObjectID, labelInput.Key)
 	if err != nil {
-		if !strings.Contains(err.Error(), "not found") {
-			return errors.Wrapf(err, "while getting label %s", labelInput.Key)
-		}
-
+		return errors.Wrapf(err, "while getting label %s", labelInput.Key)
+	} else if label == nil {
 		// not found, generate new label ID
 		id = s.uidService.Generate()
-	} else {
+	} else if label != nil {
 		id = label.ID
 	}
 

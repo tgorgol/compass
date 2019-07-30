@@ -298,8 +298,8 @@ func (r *Resolver) Labels(ctx context.Context, obj *graphql.Runtime, key *string
 
 	resultLabels := make(map[string]interface{})
 
-	for key, value := range itemMap {
-		resultLabels[key] = value
+	for _, label := range itemMap {
+		resultLabels[label.Key] = label.Value
 	}
 
 	return resultLabels, nil

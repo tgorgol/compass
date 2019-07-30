@@ -2,6 +2,7 @@ package label
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
@@ -34,8 +35,13 @@ func (r *dbRepository) Upsert(ctx context.Context, label *model.Label) error {
 		return errors.Wrap(err, "while creating Label entity from model")
 	}
 
-	stmt := fmt.Sprintf(`INSERT INTO %s (%s) VALUES (:id, :tenant_id, :key, :value, :app_id, :runtime_id) ON CONFLICT target action`,
-		fields, tableName)
+	stmt := fmt.Sprintf(`INSERT INTO %s (id, tenant_id, key, value, app_id, runtime_id) VALUES (:id, :tenant_id, :key, :value, :app_id, :runtime_id)
+		ON CONFLICT (id) DO UPDATE SET
+    		key = EXCLUDED.key,
+    		value = EXCLUDED.value,
+    		app_id = EXCLUDED.app_id,
+    		runtime_id = EXCLUDED.runtime_id
+		`, tableName)
 
 	_, err = persist.NamedExec(stmt, entity)
 	if err != nil {
@@ -44,7 +50,7 @@ func (r *dbRepository) Upsert(ctx context.Context, label *model.Label) error {
 			return errors.New("Unique Violation error")
 		}
 
-		return errors.Wrap(err, "while inserting the runtime entity to database")
+		return errors.Wrap(err, "while upserting the Label entity to database")
 	}
 
 	return nil
@@ -62,10 +68,17 @@ func (r *dbRepository) GetByKey(ctx context.Context, tenant string, objectType m
 	var entity Entity
 	err = persist.Get(&entity, stmt, key, tenant)
 	if err != nil {
-		return nil, errors.Wrap(err, "while getting Entity from DB")
+		if err != sql.ErrNoRows {
+			return nil, errors.Wrap(err, "while getting Entity from DB")
+		}
+
+		return nil, nil
 	}
 
-	labelModel := entity.ToModel()
+	labelModel, err := entity.ToModel()
+	if err != nil {
+		return nil, errors.Wrap(err, "while converting Label entity to model")
+	}
 
 	return labelModel, nil
 }
@@ -88,7 +101,10 @@ func (r *dbRepository) List(ctx context.Context, tenant string, objectType model
 	labelsMap := make(map[string]*model.Label)
 
 	for _, entity := range entities {
-		model := entity.ToModel()
+		model, err := entity.ToModel()
+		if err != nil {
+			return nil, errors.Wrap(err, "while converting Label entity to model")
+		}
 
 		labelsMap[model.Key] = model
 	}

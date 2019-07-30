@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"github.com/kyma-incubator/compass/components/director/internal/domain/label"
+	"github.com/kyma-incubator/compass/components/director/internal/domain/labeldef"
 
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
 
@@ -50,8 +51,7 @@ func NewRootResolver(transact persistence.Transactioner) *RootResolver {
 	runtimeRepo := runtime.NewPostgresRepository()
 	applicationRepo := application.NewRepository()
 	labelRepo := label.NewRepository()
-	var labelDefinitionRepo label.LabelDefinitionRepository // TODO: Use actual implementation
-	//labelDefinition := labeldefinition.NewRepository()
+	labelDefinitionRepo := labeldef.NewRepository(labeldef.NewConverter())
 
 	webhookRepo := webhook.NewRepository()
 	apiRepo := api.NewAPIRepository()

@@ -13,7 +13,7 @@ type Entity struct {
 	Key       string         `db:"key"`
 	AppID     sql.NullString `db:"app_id"`
 	RuntimeID sql.NullString `db:"runtime_id"`
-	Value     interface{}    `db:"value"`
+	Value     string    `db:"value"`
 }
 
 // EntityFromRModel converts Label model to Label entity
@@ -49,7 +49,13 @@ func EntityFromModel(in *model.Label) (*Entity, error) {
 }
 
 // ToModel converts Entity entity to Runtime model
-func (e *Entity) ToModel() *model.Label {
+func (e *Entity) ToModel() (*model.Label, error) {
+	var valueUnmarshalled interface{}
+	err := json.Unmarshal([]byte(e.Value), &valueUnmarshalled)
+	if err != nil {
+		return nil, errors.Wrap(err, "while unmarshalling Value")
+	}
+
 	var objectType model.LabelableObject
 	var objectID string
 
@@ -68,5 +74,5 @@ func (e *Entity) ToModel() *model.Label {
 		ObjectType: objectType,
 		Key:        e.Key,
 		Value:      e.Value,
-	}
+	}, nil
 }
