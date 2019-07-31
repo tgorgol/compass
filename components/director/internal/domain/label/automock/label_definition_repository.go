@@ -12,13 +12,13 @@ type LabelDefinitionRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, tenant, labelDefinition
-func (_m *LabelDefinitionRepository) Create(ctx context.Context, tenant string, labelDefinition *model.LabelDefinition) error {
-	ret := _m.Called(ctx, tenant, labelDefinition)
+// Create provides a mock function with given fields: ctx, def
+func (_m *LabelDefinitionRepository) Create(ctx context.Context, def model.LabelDefinition) error {
+	ret := _m.Called(ctx, def)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *model.LabelDefinition) error); ok {
-		r0 = rf(ctx, tenant, labelDefinition)
+	if rf, ok := ret.Get(0).(func(context.Context, model.LabelDefinition) error); ok {
+		r0 = rf(ctx, def)
 	} else {
 		r0 = ret.Error(0)
 	}

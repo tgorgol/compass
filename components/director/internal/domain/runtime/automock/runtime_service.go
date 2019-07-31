@@ -131,15 +131,15 @@ func (_m *RuntimeService) List(ctx context.Context, filter []*labelfilter.LabelF
 }
 
 // ListLabels provides a mock function with given fields: ctx, runtimeID
-func (_m *RuntimeService) ListLabels(ctx context.Context, runtimeID string) (map[string]interface{}, error) {
+func (_m *RuntimeService) ListLabels(ctx context.Context, runtimeID string) (map[string]*model.Label, error) {
 	ret := _m.Called(ctx, runtimeID)
 
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func(context.Context, string) map[string]interface{}); ok {
+	var r0 map[string]*model.Label
+	if rf, ok := ret.Get(0).(func(context.Context, string) map[string]*model.Label); ok {
 		r0 = rf(ctx, runtimeID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
+			r0 = ret.Get(0).(map[string]*model.Label)
 		}
 	}
 

@@ -13,7 +13,7 @@ type Entity struct {
 	Key       string         `db:"key"`
 	AppID     sql.NullString `db:"app_id"`
 	RuntimeID sql.NullString `db:"runtime_id"`
-	Value     string    `db:"value"`
+	Value     string         `db:"value"`
 }
 
 // EntityFromRModel converts Label model to Label entity
@@ -28,12 +28,12 @@ func EntityFromModel(in *model.Label) (*Entity, error) {
 	switch in.ObjectType {
 	case model.ApplicationLabelableObject:
 		appID = sql.NullString{
-			Valid: true,
+			Valid:  true,
 			String: in.ObjectID,
 		}
 	case model.RuntimeLabelableObject:
 		rtmID = sql.NullString{
-			Valid: true,
+			Valid:  true,
 			String: in.ObjectID,
 		}
 	}
