@@ -6,6 +6,7 @@ import (
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/jsonschema"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 //go:generate mockery -name=LabelRepository -output=automock -outpkg=automock -case=underscore
@@ -55,7 +56,7 @@ func (s *labelUpsertService) UpsertMultipleLabels(ctx context.Context, tenant st
 func (s *labelUpsertService) UpsertLabel(ctx context.Context, tenant string, labelInput *model.LabelInput) error {
 	exists, err := s.labelDefinitionRepo.Exists(ctx, tenant, labelInput.Key)
 	if err != nil {
-		return errors.Wrapf(err, "while checking if LabelDefinition for key %s exists", labelInput.Key)
+		return errors.Wrapf(err, "while checking if LabelDefinition for key '%s' exists", labelInput.Key)
 	}
 
 	if !exists {
@@ -67,7 +68,7 @@ func (s *labelUpsertService) UpsertLabel(ctx context.Context, tenant string, lab
 			Schema: nil,
 		})
 		if err != nil {
-			return errors.Wrapf(err, "while creating empty LabelDefinition for %s", labelInput.Key)
+			return errors.Wrapf(err, "while creating empty LabelDefinition for '%s'", labelInput.Key)
 		}
 	}
 
@@ -79,46 +80,48 @@ func (s *labelUpsertService) UpsertLabel(ctx context.Context, tenant string, lab
 	var id string
 	label, err := s.labelRepo.GetByKey(ctx, tenant, labelInput.ObjectType, labelInput.ObjectID, labelInput.Key)
 	if err != nil {
-		return errors.Wrapf(err, "while getting label %s", labelInput.Key)
-	} else if label == nil {
+		if !strings.Contains(err.Error(), "not found") {
+			return errors.Wrapf(err, "while getting label '%s'", labelInput.Key)
+		}
+
 		// not found, generate new label ID
 		id = s.uidService.Generate()
-	} else if label != nil {
+	} else {
 		id = label.ID
 	}
 
 	label = labelInput.ToLabel(id, tenant)
 	err = s.labelRepo.Upsert(ctx, label)
 	if err != nil {
-		return errors.Wrapf(err, "while creating label %s for %s %s", labelInput.Key, labelInput.ObjectType, labelInput.ObjectID)
+		return errors.Wrapf(err, "while creating label '%s' for %s '%s'", labelInput.Key, labelInput.ObjectType, labelInput.ObjectID)
 	}
 
 	return nil
 }
 
 func (s *labelUpsertService) validateLabelInputValue(ctx context.Context, tenant string, labelInput *model.LabelInput) error {
-	labelDefSchema, err := s.labelDefinitionRepo.GetByKey(ctx, tenant, labelInput.Key)
+	labelDef, err := s.labelDefinitionRepo.GetByKey(ctx, tenant, labelInput.Key)
 	if err != nil {
-		return errors.Wrapf(err, "while reading JSON schema for LabelDefinition for key %s", labelInput.Key)
+		return errors.Wrapf(err, "while reading JSON schema for LabelDefinition for key '%s'", labelInput.Key)
 	}
 
-	if labelDefSchema == nil {
+	if labelDef == nil || labelDef.Schema == nil {
 		// nothing to validate
 		return nil
 	}
 
-	validator, err := jsonschema.NewValidatorFromRawSchema(labelDefSchema)
+	validator, err := jsonschema.NewValidatorFromRawSchema(*labelDef.Schema)
 	if err != nil {
-		return errors.Wrapf(err, "while creating JSON Schema validator for schema %+v", labelDefSchema)
+		return errors.Wrapf(err, "while creating JSON Schema validator for schema %+v", *labelDef.Schema)
 	}
 
 	valid, err := validator.ValidateRaw(labelInput.Value)
 	if err != nil {
-		return errors.Wrapf(err, "while validating value %+v against JSON Schema: %+v", labelInput.Value, labelDefSchema)
+		return errors.Wrapf(err, "while validating value %+v against JSON Schema: %+v", labelInput.Value, *labelDef.Schema)
 	}
 
 	if !valid {
-		return fmt.Errorf("Entity value for key %s is not valid", labelInput.Key)
+		return fmt.Errorf("The '%s' label value is not valid", labelInput.Key)
 	}
 
 	return nil

@@ -30,7 +30,7 @@ func (r *inMemoryRepository) Exists(ctx context.Context, tenant, id string) (boo
 	application := r.store[id]
 
 	if application == nil || application.Tenant != tenant {
-		return false, errors.New("application not found")
+		return false, nil
 	}
 
 	return true, nil

@@ -2,8 +2,8 @@ package application
 
 import (
 	"context"
-
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
+	"strings"
 
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
@@ -320,7 +320,7 @@ func (r *Resolver) DeleteApplicationLabel(ctx context.Context, applicationID str
 
 	ctx = r.ctxValueSetter.WithValue(ctx, persistence.PersistenceCtxKey, tx)
 
-	labelValue, err := r.appSvc.GetLabel(ctx, applicationID, key)
+	label, err := r.appSvc.GetLabel(ctx, applicationID, key)
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +337,7 @@ func (r *Resolver) DeleteApplicationLabel(ctx context.Context, applicationID str
 
 	return &graphql.Label{
 		Key:   key,
-		Value: labelValue.Value,
+		Value: label.Value,
 	}, nil
 }
 
@@ -444,6 +444,10 @@ func (r *Resolver) Labels(ctx context.Context, obj *graphql.Application, key *st
 
 	itemMap, err := r.appSvc.ListLabels(ctx, obj.ID)
 	if err != nil {
+		if strings.Contains(err.Error(), "doesn't exist") {
+			return graphql.Labels{}, nil
+		}
+
 		return nil, err
 	}
 
