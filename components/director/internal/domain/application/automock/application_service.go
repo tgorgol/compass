@@ -154,15 +154,15 @@ func (_m *ApplicationService) ListByRuntimeID(ctx context.Context, runtimeID str
 }
 
 // ListLabels provides a mock function with given fields: ctx, applicationID
-func (_m *ApplicationService) ListLabels(ctx context.Context, applicationID string) (map[string]interface{}, error) {
+func (_m *ApplicationService) ListLabels(ctx context.Context, applicationID string) (map[string]*model.Label, error) {
 	ret := _m.Called(ctx, applicationID)
 
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func(context.Context, string) map[string]interface{}); ok {
+	var r0 map[string]*model.Label
+	if rf, ok := ret.Get(0).(func(context.Context, string) map[string]*model.Label); ok {
 		r0 = rf(ctx, applicationID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
+			r0 = ret.Get(0).(map[string]*model.Label)
 		}
 	}
 

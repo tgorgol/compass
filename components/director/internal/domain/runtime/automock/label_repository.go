@@ -63,15 +63,15 @@ func (_m *LabelRepository) GetByKey(ctx context.Context, tenant string, objectTy
 }
 
 // List provides a mock function with given fields: ctx, tenant, objectType, objectID
-func (_m *LabelRepository) List(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string) (map[string]interface{}, error) {
+func (_m *LabelRepository) List(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string) (map[string]*model.Label, error) {
 	ret := _m.Called(ctx, tenant, objectType, objectID)
 
-	var r0 map[string]interface{}
-	if rf, ok := ret.Get(0).(func(context.Context, string, model.LabelableObject, string) map[string]interface{}); ok {
+	var r0 map[string]*model.Label
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.LabelableObject, string) map[string]*model.Label); ok {
 		r0 = rf(ctx, tenant, objectType, objectID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string]interface{})
+			r0 = ret.Get(0).(map[string]*model.Label)
 		}
 	}
 

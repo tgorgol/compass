@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
 
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
@@ -290,10 +291,10 @@ func (r *Resolver) SetApplicationLabel(ctx context.Context, applicationID string
 	ctx = r.ctxValueSetter.WithValue(ctx, persistence.PersistenceCtxKey, tx)
 
 	err = r.appSvc.SetLabel(ctx, &model.LabelInput{
-		Key:key,
-		Value: value,
+		Key:        key,
+		Value:      value,
 		ObjectType: model.ApplicationLabelableObject,
-		ObjectID: applicationID,
+		ObjectID:   applicationID,
 	})
 	if err != nil {
 		return nil, err
@@ -336,7 +337,7 @@ func (r *Resolver) DeleteApplicationLabel(ctx context.Context, applicationID str
 
 	return &graphql.Label{
 		Key:   key,
-		Value: labelValue,
+		Value: labelValue.Value,
 	}, nil
 }
 

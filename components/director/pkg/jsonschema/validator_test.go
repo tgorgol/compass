@@ -71,7 +71,7 @@ func TestValidator_ValidateString(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Name, func(t *testing.T) {
 
-			svc, err := jsonschema.NewValidator(testCase.InputJsonSchema)
+			svc, err := jsonschema.NewValidatorFromStringSchema(testCase.InputJsonSchema)
 			require.NoError(t, err)
 
 			// when
@@ -100,9 +100,8 @@ func TestValidator_ValidateRaw(t *testing.T) {
 				"description": "bar",
 			},
 			"baz": map[string]interface{}{
-				"description": "baz",
 				"type":        "integer",
-				"minimum":     0,
+				"description": "baz",
 			},
 		},
 		"required": []interface{}{"foo", "bar", "baz"},

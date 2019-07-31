@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+
 	"github.com/pkg/errors"
 
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
@@ -219,10 +220,10 @@ func (r *Resolver) SetRuntimeLabel(ctx context.Context, runtimeID string, key st
 	ctx = r.ctxvs.WithValue(ctx, persistence.PersistenceCtxKey, tx)
 
 	err = r.svc.SetLabel(ctx, &model.LabelInput{
-		Key:key,
-		Value: value,
+		Key:        key,
+		Value:      value,
 		ObjectType: model.RuntimeLabelableObject,
-		ObjectID: runtimeID,
+		ObjectID:   runtimeID,
 	})
 	if err != nil {
 		return nil, err
@@ -265,7 +266,7 @@ func (r *Resolver) DeleteRuntimeLabel(ctx context.Context, runtimeID string, key
 
 	return &graphql.Label{
 		Key:   key,
-		Value: labelValue,
+		Value: labelValue.Value,
 	}, nil
 }
 
