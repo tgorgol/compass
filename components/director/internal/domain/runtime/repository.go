@@ -37,7 +37,7 @@ func (r *pgRepository) Exists(ctx context.Context, tenant, id string) (bool, err
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-		return false, errors.Wrap(err, "while fetching runtime from DB")
+		return false, errors.Wrap(err, "while getting runtime from DB")
 	}
 
 	return true, nil

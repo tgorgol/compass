@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
+	"strings"
 
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
@@ -443,6 +444,10 @@ func (r *Resolver) Labels(ctx context.Context, obj *graphql.Application, key *st
 
 	itemMap, err := r.appSvc.ListLabels(ctx, obj.ID)
 	if err != nil {
+		if strings.Contains(err.Error(), "doesn't exist") {
+			return graphql.Labels{}, nil
+		}
+
 		return nil, err
 	}
 

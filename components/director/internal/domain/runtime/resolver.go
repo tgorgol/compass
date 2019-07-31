@@ -285,7 +285,7 @@ func (r *Resolver) Labels(ctx context.Context, obj *graphql.Runtime, key *string
 
 	itemMap, err := r.svc.ListLabels(ctx, obj.ID)
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
+		if strings.Contains(err.Error(), "doesn't exist") {
 			return graphql.Labels{}, nil
 		}
 
