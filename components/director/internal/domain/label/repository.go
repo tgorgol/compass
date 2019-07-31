@@ -47,7 +47,7 @@ func (r *dbRepository) Upsert(ctx context.Context, label *model.Label) error {
 	if err != nil {
 		pqErr, ok := err.(*pq.Error)
 		if ok && pqErr.Code == persistence.UniqueViolation {
-			return errors.New("Unique Violation error")
+			return errors.Wrap(pqErr, "unique Violation error:")
 		}
 
 		return errors.Wrap(err, "while upserting the Label entity to database")
@@ -62,17 +62,17 @@ func (r *dbRepository) GetByKey(ctx context.Context, tenant string, objectType m
 		return nil, errors.Wrap(err, "while fetching DB from context")
 	}
 
-	stmt := fmt.Sprintf(`SELECT %s FROM %s WHERE "key" = $1 AND "tenant_id" = $2`,
-		fields, tableName)
+	stmt := fmt.Sprintf(`SELECT %s FROM %s WHERE "key" = $1 AND "%s" = $2 AND "tenant_id" = $3`,
+		fields, tableName, r.objectField(objectType))
 
 	var entity Entity
-	err = persist.Get(&entity, stmt, key, tenant)
+	err = persist.Get(&entity, stmt, key, objectID, tenant)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return nil, errors.Wrap(err, "while getting Entity from DB")
 		}
 
-		return nil, nil
+		return nil, fmt.Errorf("label '%s' not found", key) //TODO: Return own type for Not found error
 	}
 
 	labelModel, err := entity.ToModel()
@@ -80,7 +80,7 @@ func (r *dbRepository) GetByKey(ctx context.Context, tenant string, objectType m
 		return nil, errors.Wrap(err, "while converting Label entity to model")
 	}
 
-	return labelModel, nil
+	return &labelModel, nil
 }
 
 func (r *dbRepository) List(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string) (map[string]*model.Label, error) {
@@ -89,11 +89,11 @@ func (r *dbRepository) List(ctx context.Context, tenant string, objectType model
 		return nil, errors.Wrap(err, "while fetching DB from context")
 	}
 
-	stmt := fmt.Sprintf(`SELECT %s FROM %s WHERE "tenant_id" = $1`,
-		fields, tableName)
+	stmt := fmt.Sprintf(`SELECT %s FROM %s WHERE  "%s" = $1 AND "tenant_id" = $2`,
+		fields, tableName, r.objectField(objectType))
 
 	var entities []Entity
-	err = persist.Select(&entities, stmt, tenant)
+	err = persist.Select(&entities, stmt, objectID, tenant)
 	if err != nil {
 		return nil, errors.Wrap(err, "while fetching Labels from DB")
 	}
@@ -101,12 +101,12 @@ func (r *dbRepository) List(ctx context.Context, tenant string, objectType model
 	labelsMap := make(map[string]*model.Label)
 
 	for _, entity := range entities {
-		model, err := entity.ToModel()
+		m, err := entity.ToModel()
 		if err != nil {
 			return nil, errors.Wrap(err, "while converting Label entity to model")
 		}
 
-		labelsMap[model.Key] = model
+		labelsMap[m.Key] = &m
 	}
 
 	return labelsMap, nil

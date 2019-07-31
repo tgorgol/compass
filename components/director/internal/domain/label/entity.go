@@ -49,11 +49,11 @@ func EntityFromModel(in *model.Label) (*Entity, error) {
 }
 
 // ToModel converts Entity entity to Runtime model
-func (e *Entity) ToModel() (*model.Label, error) {
+func (e *Entity) ToModel() (model.Label, error) {
 	var valueUnmarshalled interface{}
 	err := json.Unmarshal([]byte(e.Value), &valueUnmarshalled)
 	if err != nil {
-		return nil, errors.Wrap(err, "while unmarshalling Value")
+		return model.Label{}, errors.Wrap(err, "while unmarshalling Value")
 	}
 
 	var objectType model.LabelableObject
@@ -67,12 +67,12 @@ func (e *Entity) ToModel() (*model.Label, error) {
 		objectType = model.RuntimeLabelableObject
 	}
 
-	return &model.Label{
+	return model.Label{
 		ID:         e.ID,
 		Tenant:     e.TenantID,
 		ObjectID:   objectID,
 		ObjectType: objectType,
 		Key:        e.Key,
-		Value:      e.Value,
+		Value:      valueUnmarshalled,
 	}, nil
 }

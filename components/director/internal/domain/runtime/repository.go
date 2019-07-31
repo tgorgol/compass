@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -33,10 +34,13 @@ func (r *pgRepository) Exists(ctx context.Context, tenant, id string) (bool, err
 	var count int
 	err = persist.Get(&count, stmt, id, tenant)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
 		return false, errors.Wrap(err, "while fetching runtime from DB")
 	}
 
-	return count == 1, nil
+	return true, nil
 }
 
 func (r *pgRepository) GetByID(ctx context.Context, tenant, id string) (*model.Runtime, error) {
@@ -51,7 +55,11 @@ func (r *pgRepository) GetByID(ctx context.Context, tenant, id string) (*model.R
 	var runtimeEnt Runtime
 	err = persist.Get(&runtimeEnt, stmt, id, tenant)
 	if err != nil {
-		return nil, errors.Wrap(err, "while fetching runtime from DB")
+		if err != sql.ErrNoRows {
+			return nil, errors.Wrap(err, "while getting runtime from DB")
+		}
+
+		return nil, fmt.Errorf("runtime '%s' not found", id) //TODO: Return own type for Not found error
 	}
 
 	runtimeModel, err := runtimeEnt.ToModel()

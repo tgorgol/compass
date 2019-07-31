@@ -319,7 +319,7 @@ func (r *Resolver) DeleteApplicationLabel(ctx context.Context, applicationID str
 
 	ctx = r.ctxValueSetter.WithValue(ctx, persistence.PersistenceCtxKey, tx)
 
-	labelValue, err := r.appSvc.GetLabel(ctx, applicationID, key)
+	label, err := r.appSvc.GetLabel(ctx, applicationID, key)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +336,7 @@ func (r *Resolver) DeleteApplicationLabel(ctx context.Context, applicationID str
 
 	return &graphql.Label{
 		Key:   key,
-		Value: labelValue,
+		Value: label.Value,
 	}, nil
 }
 

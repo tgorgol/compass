@@ -174,13 +174,10 @@ func (s *service) Delete(ctx context.Context, id string) error {
 
 	err = s.repo.Delete(ctx, id)
 	if err != nil {
-		return errors.Wrapf(err, "while creating labels for Runtime")
+		return errors.Wrapf(err, "while deleting Runtime")
 	}
 
-	err = s.labelRepo.DeleteAll(ctx, rtmTenant, model.RuntimeLabelableObject, id)
-	if err != nil {
-		return errors.Wrapf(err, "while deleting all labels for Runtime")
-	}
+	// All labels are deleted (cascade delete)
 
 	return nil
 }

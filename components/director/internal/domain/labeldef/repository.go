@@ -3,12 +3,11 @@ package labeldef
 import (
 	"context"
 	"fmt"
-	"github.com/kyma-incubator/compass/components/director/pkg/graphql"
-	"strings"
-
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
+	"github.com/kyma-incubator/compass/components/director/pkg/graphql"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 const (
@@ -65,17 +64,15 @@ func (r *repo) GetByKey(ctx context.Context, tenant string, key string) (*model.
 }
 
 func (r *repo) Exists(ctx context.Context, tenant string, key string) (bool, error) {
-	def, err := r.GetByKey(ctx, tenant, key)
+	_, err := r.GetByKey(ctx, tenant, key)
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows") {
 			return false, nil
 		}
 		return false, err
 	}
-	if def != nil {
-		return true, nil
-	}
-	return false, nil
+
+	return true, nil
 }
 
 type Entity struct {

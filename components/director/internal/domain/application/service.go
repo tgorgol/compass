@@ -224,9 +224,10 @@ func (s *service) Delete(ctx context.Context, id string) error {
 
 	err = s.appRepo.Delete(ctx, app)
 	if err != nil {
-		return errors.Wrapf(err, "while creating labels for Runtime")
+		return errors.Wrapf(err, "while deleting Application")
 	}
 
+	// TODO: Set cascade delete when implementing DB repository for Application domain
 	err = s.labelRepo.DeleteAll(ctx, appTenant, model.ApplicationLabelableObject, id)
 	if err != nil {
 		return errors.Wrapf(err, "while deleting all labels for Runtime")

@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 	"github.com/pkg/errors"
+	"strings"
 
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
 
@@ -248,7 +249,7 @@ func (r *Resolver) DeleteRuntimeLabel(ctx context.Context, runtimeID string, key
 
 	ctx = r.ctxvs.WithValue(ctx, persistence.PersistenceCtxKey, tx)
 
-	labelValue, err := r.svc.GetLabel(ctx, runtimeID, key)
+	label, err := r.svc.GetLabel(ctx, runtimeID, key)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +266,7 @@ func (r *Resolver) DeleteRuntimeLabel(ctx context.Context, runtimeID string, key
 
 	return &graphql.Label{
 		Key:   key,
-		Value: labelValue,
+		Value: label.Value,
 	}, nil
 }
 
@@ -282,12 +283,12 @@ func (r *Resolver) Labels(ctx context.Context, obj *graphql.Runtime, key *string
 
 	ctx = r.ctxvs.WithValue(ctx, persistence.PersistenceCtxKey, tx)
 
-	if obj == nil {
-		return nil, errors.New("Runtime cannot be empty")
-	}
-
 	itemMap, err := r.svc.ListLabels(ctx, obj.ID)
 	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return graphql.Labels{}, nil
+		}
+
 		return nil, err
 	}
 
