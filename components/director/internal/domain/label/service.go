@@ -100,24 +100,24 @@ func (s *labelUpsertService) UpsertLabel(ctx context.Context, tenant string, lab
 }
 
 func (s *labelUpsertService) validateLabelInputValue(ctx context.Context, tenant string, labelInput *model.LabelInput) error {
-	labelDefSchema, err := s.labelDefinitionRepo.GetByKey(ctx, tenant, labelInput.Key)
+	labelDef, err := s.labelDefinitionRepo.GetByKey(ctx, tenant, labelInput.Key)
 	if err != nil {
 		return errors.Wrapf(err, "while reading JSON schema for LabelDefinition for key '%s'", labelInput.Key)
 	}
 
-	if labelDefSchema == nil {
+	if labelDef == nil || labelDef.Schema == nil {
 		// nothing to validate
 		return nil
 	}
 
-	validator, err := jsonschema.NewValidatorFromRawSchema(labelDefSchema)
+	validator, err := jsonschema.NewValidatorFromRawSchema(*labelDef.Schema)
 	if err != nil {
-		return errors.Wrapf(err, "while creating JSON Schema validator for schema %+v", labelDefSchema)
+		return errors.Wrapf(err, "while creating JSON Schema validator for schema %+v", *labelDef.Schema)
 	}
 
 	valid, err := validator.ValidateRaw(labelInput.Value)
 	if err != nil {
-		return errors.Wrapf(err, "while validating value %+v against JSON Schema: %+v", labelInput.Value, labelDefSchema)
+		return errors.Wrapf(err, "while validating value %+v against JSON Schema: %+v", labelInput.Value, *labelDef.Schema)
 	}
 
 	if !valid {
