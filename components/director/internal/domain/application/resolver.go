@@ -2,8 +2,9 @@ package application
 
 import (
 	"context"
-	"github.com/kyma-incubator/compass/components/director/internal/persistence"
 	"strings"
+
+	"github.com/kyma-incubator/compass/components/director/internal/persistence"
 
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"

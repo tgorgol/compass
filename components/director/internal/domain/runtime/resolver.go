@@ -2,8 +2,9 @@ package runtime
 
 import (
 	"context"
-	"github.com/pkg/errors"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
 

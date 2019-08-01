@@ -306,7 +306,6 @@ func TestService_Delete(t *testing.T) {
 	testCases := []struct {
 		Name               string
 		RepositoryFn       func() *automock.RuntimeRepository
-		LabelRepositoryFn  func() *automock.LabelRepository
 		Input              model.RuntimeInput
 		InputID            string
 		ExpectedErrMessage string
@@ -317,11 +316,6 @@ func TestService_Delete(t *testing.T) {
 				repo := &automock.RuntimeRepository{}
 				repo.On("Exists", ctx, tnt, id).Return(true, nil).Once()
 				repo.On("Delete", ctx, runtimeModel.ID).Return(nil).Once()
-				return repo
-			},
-			LabelRepositoryFn: func() *automock.LabelRepository {
-				repo := &automock.LabelRepository{}
-				repo.On("DeleteAll", ctx, tnt, model.RuntimeLabelableObject, runtimeModel.ID).Return(nil).Once()
 				return repo
 			},
 			InputID:            id,
@@ -335,10 +329,6 @@ func TestService_Delete(t *testing.T) {
 				repo.On("Delete", ctx, runtimeModel.ID).Return(testErr).Once()
 				return repo
 			},
-			LabelRepositoryFn: func() *automock.LabelRepository {
-				repo := &automock.LabelRepository{}
-				return repo
-			},
 			InputID:            id,
 			ExpectedErrMessage: testErr.Error(),
 		},
@@ -349,10 +339,6 @@ func TestService_Delete(t *testing.T) {
 				repo.On("Exists", ctx, tnt, id).Return(false, testErr).Once()
 				return repo
 			},
-			LabelRepositoryFn: func() *automock.LabelRepository {
-				repo := &automock.LabelRepository{}
-				return repo
-			},
 			InputID:            id,
 			ExpectedErrMessage: testErr.Error(),
 		},
@@ -361,8 +347,7 @@ func TestService_Delete(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Name, func(t *testing.T) {
 			repo := testCase.RepositoryFn()
-			labelRepo := testCase.LabelRepositoryFn()
-			svc := runtime.NewService(repo, labelRepo, nil, nil)
+			svc := runtime.NewService(repo, nil, nil, nil)
 
 			// when
 			err := svc.Delete(ctx, testCase.InputID)
@@ -375,7 +360,6 @@ func TestService_Delete(t *testing.T) {
 			}
 
 			repo.AssertExpectations(t)
-			labelRepo.AssertExpectations(t)
 		})
 	}
 }
