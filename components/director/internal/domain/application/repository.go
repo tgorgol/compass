@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/pagination"
@@ -55,7 +56,6 @@ func (r *inMemoryRepository) List(ctx context.Context, tenant string, filter []*
 		},
 	}, nil
 }
-
 
 // TODO: Make filtering and paging
 func (r *inMemoryRepository) ListByRuntimeID(ctx context.Context, tenant, runtimeID string, pageSize *int, cursor *string) (*model.ApplicationPage, error) {

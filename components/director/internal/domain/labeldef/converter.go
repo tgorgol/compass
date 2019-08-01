@@ -1,14 +1,13 @@
 package labeldef
 
 import (
-"database/sql"
-"encoding/json"
+	"database/sql"
+	"encoding/json"
 
-"github.com/kyma-incubator/compass/components/director/internal/model"
-"github.com/kyma-incubator/compass/components/director/pkg/graphql"
-"github.com/pkg/errors"
+	"github.com/kyma-incubator/compass/components/director/internal/model"
+	"github.com/kyma-incubator/compass/components/director/pkg/graphql"
+	"github.com/pkg/errors"
 )
-
 
 // dependencies
 //go:generate mockery -name=Converter -output=automock -outpkg=automock -case=underscore

@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/internal/tenant"
@@ -59,7 +60,7 @@ type EventAPIRepository interface {
 //go:generate mockery -name=LabelUpsertService -output=automock -outpkg=automock -case=underscore
 type LabelUpsertService interface {
 	UpsertMultipleLabels(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string, labels map[string]interface{}) error
-	UpsertLabel(ctx context.Context,  tenant string, labelInput *model.LabelInput) error
+	UpsertLabel(ctx context.Context, tenant string, labelInput *model.LabelInput) error
 }
 
 //go:generate mockery -name=UIDService -output=automock -outpkg=automock -case=underscore
@@ -68,15 +69,15 @@ type UIDService interface {
 }
 
 type service struct {
-	appRepo             ApplicationRepository
-	apiRepo             APIRepository
-	eventAPIRepo        EventAPIRepository
-	documentRepo        DocumentRepository
-	webhookRepo         WebhookRepository
-	labelRepo           LabelRepository
+	appRepo      ApplicationRepository
+	apiRepo      APIRepository
+	eventAPIRepo EventAPIRepository
+	documentRepo DocumentRepository
+	webhookRepo  WebhookRepository
+	labelRepo    LabelRepository
 
 	labelUpsertService LabelUpsertService
-	uidService UIDService
+	uidService         UIDService
 }
 
 func NewService(app ApplicationRepository, webhook WebhookRepository, api APIRepository, eventAPI EventAPIRepository, document DocumentRepository, labelRepo LabelRepository, labelUpsertService LabelUpsertService, uidService UIDService) *service {

@@ -3,11 +3,12 @@ package label_test
 import (
 	"database/sql"
 	"encoding/json"
+	"testing"
+
 	"github.com/kyma-incubator/compass/components/director/internal/domain/label"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestEntityFromModel(t *testing.T) {
@@ -56,8 +57,8 @@ func TestEntityFromModel(t *testing.T) {
 			ExpectedErrMessage: "",
 		},
 		{
-			Name:               "Error",
-			Input:              &model.Label{
+			Name: "Error",
+			Input: &model.Label{
 				Value: make(chan int),
 			},
 			Expected:           nil,

@@ -3,10 +3,11 @@ package label
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/jsonschema"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 //go:generate mockery -name=LabelRepository -output=automock -outpkg=automock -case=underscore

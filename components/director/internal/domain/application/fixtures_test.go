@@ -67,9 +67,9 @@ func fixDetailedModelApplication(t *testing.T, id, name, description string) *mo
 			Condition: model.ApplicationStatusConditionInitial,
 			Timestamp: time,
 		},
-		Name:        name,
-		Description: &description,
-		Tenant:      "tenant",
+		Name:           name,
+		Description:    &description,
+		Tenant:         "tenant",
 		HealthCheckURL: &url,
 	}
 }
@@ -85,8 +85,8 @@ func fixDetailedGQLApplication(t *testing.T, id, name, description string) *grap
 			Condition: graphql.ApplicationStatusConditionInitial,
 			Timestamp: graphql.Timestamp(time),
 		},
-		Name:        name,
-		Description: &description,
+		Name:           name,
+		Description:    &description,
 		HealthCheckURL: &url,
 	}
 }

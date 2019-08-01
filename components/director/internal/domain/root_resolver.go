@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+
 	"github.com/kyma-incubator/compass/components/director/internal/domain/label"
 	"github.com/kyma-incubator/compass/components/director/internal/domain/labeldef"
 
@@ -252,6 +253,7 @@ func (r *mutationResolver) DeleteRuntimeLabel(ctx context.Context, runtimeID str
 type applicationResolver struct {
 	*RootResolver
 }
+
 func (r *applicationResolver) Labels(ctx context.Context, obj *graphql.Application, key *string) (graphql.Labels, error) {
 	return r.app.Labels(ctx, obj, key)
 }
@@ -268,9 +270,10 @@ func (r *applicationResolver) Documents(ctx context.Context, obj *graphql.Applic
 	return r.app.Documents(ctx, obj, first, after)
 }
 
-type runtimeResolver struct{
+type runtimeResolver struct {
 	*RootResolver
 }
+
 func (r *runtimeResolver) Labels(ctx context.Context, obj *graphql.Runtime, key *string) (graphql.Labels, error) {
 	return r.runtime.Labels(ctx, obj, key)
 }

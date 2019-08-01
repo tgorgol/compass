@@ -34,8 +34,8 @@ func TestRuntimeInput_ToRuntime(t *testing.T) {
 				ID:          id,
 				Tenant:      tenant,
 				Description: &desc,
-				Status:    &model.RuntimeStatus{},
-				AgentAuth: &model.Auth{},
+				Status:      &model.RuntimeStatus{},
+				AgentAuth:   &model.Auth{},
 			},
 		},
 		{

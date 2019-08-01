@@ -33,7 +33,7 @@ type LabelRepository interface {
 //go:generate mockery -name=LabelUpsertService -output=automock -outpkg=automock -case=underscore
 type LabelUpsertService interface {
 	UpsertMultipleLabels(ctx context.Context, tenant string, objectType model.LabelableObject, objectID string, labels map[string]interface{}) error
-	UpsertLabel(ctx context.Context,  tenant string, labelInput *model.LabelInput) error
+	UpsertLabel(ctx context.Context, tenant string, labelInput *model.LabelInput) error
 }
 
 //go:generate mockery -name=UIDService -output=automock -outpkg=automock -case=underscore
@@ -42,7 +42,7 @@ type UIDService interface {
 }
 
 type service struct {
-	repo       RuntimeRepository
+	repo      RuntimeRepository
 	labelRepo LabelRepository
 
 	labelUpsertService LabelUpsertService
