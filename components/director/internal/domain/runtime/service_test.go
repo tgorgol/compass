@@ -521,6 +521,233 @@ func TestService_List(t *testing.T) {
 	}
 }
 
+func TestService_GetLabel(t *testing.T) {
+	// given
+	tnt := "tenant"
+	ctx := context.TODO()
+	ctx = tenant.SaveToContext(ctx, tnt)
+
+	testErr := errors.New("Test error")
+
+	runtimeID := "foo"
+	labelKey := "key"
+	labelValue := []string{"value1"}
+
+	label := &model.LabelInput{
+		Key:        labelKey,
+		Value:      labelValue,
+		ObjectID:   runtimeID,
+		ObjectType: model.RuntimeLabelableObject,
+	}
+
+	modelLabel := &model.Label{
+		ID:         "5d23d9d9-3d04-4fa9-95e6-d22e1ae62c11",
+		Tenant:     tnt,
+		Key:        labelKey,
+		Value:      labelValue,
+		ObjectID:   runtimeID,
+		ObjectType: model.RuntimeLabelableObject,
+	}
+
+	testCases := []struct {
+		Name               string
+		RepositoryFn       func() *automock.RuntimeRepository
+		LabelRepositoryFn  func() *automock.LabelRepository
+		InputApplicationID string
+		InputLabel         *model.LabelInput
+		ExpectedLabel      *model.Label
+		ExpectedErrMessage string
+	}{
+		{
+			Name: "Success",
+			RepositoryFn: func() *automock.RuntimeRepository {
+				repo := &automock.RuntimeRepository{}
+				repo.On("Exists", ctx, tnt, runtimeID).Return(true, nil).Once()
+				return repo
+			},
+			LabelRepositoryFn: func() *automock.LabelRepository {
+				repo := &automock.LabelRepository{}
+				repo.On("GetByKey", ctx, tnt, model.RuntimeLabelableObject, runtimeID, labelKey).Return(modelLabel, nil).Once()
+				return repo
+			},
+			InputApplicationID: runtimeID,
+			InputLabel:         label,
+			ExpectedLabel:      modelLabel,
+			ExpectedErrMessage: "",
+		},
+		{
+			Name: "Returns error when label receiving failed",
+			RepositoryFn: func() *automock.RuntimeRepository {
+				repo := &automock.RuntimeRepository{}
+				repo.On("Exists", ctx, tnt, runtimeID).Return(true, nil).Once()
+
+				return repo
+			},
+			LabelRepositoryFn: func() *automock.LabelRepository {
+				repo := &automock.LabelRepository{}
+				repo.On("GetByKey", ctx, tnt, model.RuntimeLabelableObject, runtimeID, labelKey).Return(nil, testErr).Once()
+				return repo
+			},
+			InputApplicationID: runtimeID,
+			InputLabel:         label,
+			ExpectedLabel:      nil,
+			ExpectedErrMessage: testErr.Error(),
+		},
+		{
+			Name: "Returns error when application doesn't exist",
+			RepositoryFn: func() *automock.RuntimeRepository {
+				repo := &automock.RuntimeRepository{}
+				repo.On("Exists", ctx, tnt, runtimeID).Return(false, testErr).Once()
+
+				return repo
+			},
+			LabelRepositoryFn: func() *automock.LabelRepository {
+				repo := &automock.LabelRepository{}
+				return repo
+			},
+			InputApplicationID: runtimeID,
+			InputLabel:         label,
+			ExpectedErrMessage: testErr.Error(),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			repo := testCase.RepositoryFn()
+			labelRepo := testCase.LabelRepositoryFn()
+			svc := runtime.NewService(repo, labelRepo, nil, nil)
+
+			// when
+			l, err := svc.GetLabel(ctx, testCase.InputApplicationID, testCase.InputLabel.Key)
+
+			// then
+			if testCase.ExpectedErrMessage == "" {
+				require.NoError(t, err)
+				assert.Equal(t, l, testCase.ExpectedLabel)
+			} else {
+				assert.Contains(t, err.Error(), testCase.ExpectedErrMessage)
+			}
+
+			repo.AssertExpectations(t)
+			labelRepo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestService_ListLabel(t *testing.T) {
+	// given
+	tnt := "tenant"
+	ctx := context.TODO()
+	ctx = tenant.SaveToContext(ctx, tnt)
+
+	testErr := errors.New("Test error")
+
+	runtimeID := "foo"
+	labelKey := "key"
+	labelValue := []string{"value1"}
+
+	label := &model.LabelInput{
+		Key:        labelKey,
+		Value:      labelValue,
+		ObjectID:   runtimeID,
+		ObjectType: model.RuntimeLabelableObject,
+	}
+
+	modelLabel := &model.Label{
+		ID:         "5d23d9d9-3d04-4fa9-95e6-d22e1ae62c11",
+		Tenant:     tnt,
+		Key:        labelKey,
+		Value:      labelValue,
+		ObjectID:   runtimeID,
+		ObjectType: model.RuntimeLabelableObject,
+	}
+
+	labels := map[string]*model.Label{"first": modelLabel, "second": modelLabel}
+	testCases := []struct {
+		Name               string
+		RepositoryFn       func() *automock.RuntimeRepository
+		LabelRepositoryFn  func() *automock.LabelRepository
+		InputApplicationID string
+		InputLabel         *model.LabelInput
+		ExpectedOutput     map[string]*model.Label
+		ExpectedErrMessage string
+	}{
+		{
+			Name: "Success",
+			RepositoryFn: func() *automock.RuntimeRepository {
+				repo := &automock.RuntimeRepository{}
+				repo.On("Exists", ctx, tnt, runtimeID).Return(true, nil).Once()
+				return repo
+			},
+			LabelRepositoryFn: func() *automock.LabelRepository {
+				repo := &automock.LabelRepository{}
+				repo.On("List", ctx, tnt, model.RuntimeLabelableObject, runtimeID).Return(labels, nil).Once()
+				return repo
+			},
+			InputApplicationID: runtimeID,
+			InputLabel:         label,
+			ExpectedOutput:     labels,
+			ExpectedErrMessage: "",
+		},
+		{
+			Name: "Returns error when labels receiving failed",
+			RepositoryFn: func() *automock.RuntimeRepository {
+				repo := &automock.RuntimeRepository{}
+				repo.On("Exists", ctx, tnt, runtimeID).Return(true, nil).Once()
+
+				return repo
+			},
+			LabelRepositoryFn: func() *automock.LabelRepository {
+				repo := &automock.LabelRepository{}
+				repo.On("List", ctx, tnt, model.RuntimeLabelableObject, runtimeID).Return(nil, testErr).Once()
+				return repo
+			},
+			InputApplicationID: runtimeID,
+			InputLabel:         label,
+			ExpectedOutput:     nil,
+			ExpectedErrMessage: testErr.Error(),
+		},
+		{
+			Name: "Returns error when application doesn't exist",
+			RepositoryFn: func() *automock.RuntimeRepository {
+				repo := &automock.RuntimeRepository{}
+				repo.On("Exists", ctx, tnt, runtimeID).Return(false, testErr).Once()
+
+				return repo
+			},
+			LabelRepositoryFn: func() *automock.LabelRepository {
+				repo := &automock.LabelRepository{}
+				return repo
+			},
+			InputApplicationID: runtimeID,
+			InputLabel:         label,
+			ExpectedErrMessage: testErr.Error(),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			repo := testCase.RepositoryFn()
+			labelRepo := testCase.LabelRepositoryFn()
+			svc := runtime.NewService(repo, labelRepo, nil, nil)
+
+			// when
+			l, err := svc.ListLabels(ctx, testCase.InputApplicationID)
+
+			// then
+			if testCase.ExpectedErrMessage == "" {
+				require.NoError(t, err)
+				assert.Equal(t, l, testCase.ExpectedOutput)
+			} else {
+				assert.Contains(t, err.Error(), testCase.ExpectedErrMessage)
+			}
+
+			repo.AssertExpectations(t)
+			labelRepo.AssertExpectations(t)
+		})
+	}
+}
+
 func TestService_SetLabel(t *testing.T) {
 	// given
 	tnt := "tenant"
