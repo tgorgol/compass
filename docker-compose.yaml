@@ -1,0 +1,39 @@
+version: '3'
+services:
+  database:
+    image: 'postgres:11'
+    environment:
+      - POSTGRES_USER=usr
+      - POSTGRES_PASSWORD=pwd
+      - POSTGRES_DB=compass
+    ports:
+      - '5432:5432'
+  schema-migrator:
+    build: ./components/schema-migrator
+    links:
+      - database
+    depends_on:
+      - database
+    environment:
+      - DB_USER=usr
+      - DB_PASSWORD=pwd
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=compass
+      - DB_SSL=disable
+      - DIRECTION=up
+  director:
+    build: ./components/director
+    links:
+      - database
+    depends_on:
+      - database
+      - schema-migrator
+    environment:
+      - APP_DB_HOST=database
+      - APP_DB_NAME=compass
+      - APP_DB_USER=usr
+      - APP_DB_PASSWORD=pwd
+      - APP_ADDRESS=0.0.0.0:3000
+    ports:
+      - '3000:3000'

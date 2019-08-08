@@ -8,31 +8,29 @@ set -o pipefail
 readonly SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function cleanup {
-   #remove created binaries
-   rm "${GOPATH}/src/github.com/kyma-incubator/compass/components/director/directorBin"
-   kill ${DIRECTOR_PID}
+   cd "${SCRIPT_DIR}/../../"
+   docker-compose down
+   rm "${SCRIPT_DIR}/director.test" 2> /dev/null
 }
 
 trap cleanup EXIT
 
-##
-## Keep examples up-to-date
-##
-cd "${SCRIPT_DIR}/../../components/director/"
-dep ensure -v -vendor-only
-go build -o directorBin ./cmd/main.go
 
-./directorBin &
-DIRECTOR_PID=$!
+#
+# Run Director with DB
+#
 
-cd "${SCRIPT_DIR}"
+echo "Running Director with ..."
+
+cd "${SCRIPT_DIR}/../../"
+docker-compose up -d
 
 # wait for Director to be up and running
 
-echo "Checking if Director is up"
+echo "Checking if Director is up..."
 directorIsUp=false
 set +e
-for i in {1..5}; do
+for i in {1..10}; do
     curl --fail  'http://localhost:3000/graphql'  -H 'Content-Type: application/json'  -H 'tenant: any' --data-binary '{"query":"{\n  __schema {\n    queryType {\n      name\n    }\n  }\n}"}'
     res=$?
 
@@ -51,11 +49,16 @@ if [[ "$directorIsUp" = false ]]; then
 fi
 
 # remove previous files
+echo "Removing previous GraphQL examples..."
 rm -f "${GOPATH}/src/github.com/kyma-incubator/compass/examples/"*
 
+cd "${SCRIPT_DIR}"
+
+echo "Running Director tests with generating examples..."
 go test -c "${SCRIPT_DIR}/director/"
 ./director.test
 
+echo "Prettifying GraphQL examples..."
 img="prettier:latest"
 docker build -t ${img} ./tools/prettier
 docker run -v "${GOPATH}/src/github.com/kyma-incubator/compass/examples":/prettier/examples \
