@@ -19,7 +19,8 @@ func TestCreateApplicationWithAllSimpleFieldsProvided(t *testing.T) {
 		Description:    ptrString("my first wordpress application"),
 		HealthCheckURL: ptrString("http://mywordpress.com/health"),
 		Labels: &graphql.Labels{
-			"group": []interface{}{"production", "experimental"},
+			"group":     []interface{}{"production", "experimental"},
+			"scenarios": []interface{}{"DEFAULT"},
 		},
 	}
 
@@ -56,6 +57,9 @@ func TestCreateApplicationWithWebhooks(t *testing.T) {
 				Auth: fixBasicAuth(),
 				URL:  "http://mywordpress.com/webhooks1",
 			},
+		},
+		Labels: &graphql.Labels{
+			"scenarios": []interface{}{"DEFAULT"},
 		},
 	}
 
@@ -117,7 +121,11 @@ func TestCreateApplicationWithAPIs(t *testing.T) {
 					},
 				},
 			},
-		}}
+		},
+		Labels: &graphql.Labels{
+			"scenarios": []interface{}{"DEFAULT"},
+		},
+	}
 
 	appInputGQL, err := tc.graphqlizer.ApplicationInputToGQL(in)
 	require.NoError(t, err)
@@ -177,6 +185,9 @@ func TestCreateApplicationWithEventAPIs(t *testing.T) {
 				},
 			},
 		},
+		Labels: &graphql.Labels{
+			"scenarios": []interface{}{"DEFAULT"},
+		},
 	}
 
 	appInputGQL, err := tc.graphqlizer.ApplicationInputToGQL(in)
@@ -229,6 +240,9 @@ func TestCreateApplicationWithDocuments(t *testing.T) {
 				Format:      graphql.DocumentFormatMarkdown,
 				Data:        ptrCLOB(graphql.CLOB("No problems, everything works on my machine")),
 			},
+		},
+		Labels: &graphql.Labels{
+			"scenarios": []interface{}{"DEFAULT"},
 		},
 	}
 	appInputGQL, err := tc.graphqlizer.ApplicationInputToGQL(in)
@@ -992,6 +1006,29 @@ func getApp(ctx context.Context, t *testing.T, id string) ApplicationExt {
 func generateSampleApplicationInput(placeholder string) graphql.ApplicationInput {
 	return graphql.ApplicationInput{
 		Name: placeholder,
+		Documents: []*graphql.DocumentInput{{
+			Title:  placeholder,
+			Format: graphql.DocumentFormatMarkdown}},
+		Apis: []*graphql.APIDefinitionInput{{
+			Name:      placeholder,
+			TargetURL: placeholder}},
+		EventAPIs: []*graphql.EventAPIDefinitionInput{{
+			Name: placeholder,
+			Spec: &graphql.EventAPISpecInput{
+				EventSpecType: graphql.EventAPISpecTypeAsyncAPI,
+				Format:        graphql.SpecFormatYaml,
+			}}},
+		Webhooks: []*graphql.WebhookInput{{
+			Type: graphql.ApplicationWebhookTypeConfigurationChanged,
+			URL:  placeholder},
+		},
+		Labels: &graphql.Labels{placeholder: []interface{}{placeholder}},
+	}
+}
+
+func generateSampleApplicationInputWithName(placeholder, name string) graphql.ApplicationInput {
+	return graphql.ApplicationInput{
+		Name: name,
 		Documents: []*graphql.DocumentInput{{
 			Title:  placeholder,
 			Format: graphql.DocumentFormatMarkdown}},
