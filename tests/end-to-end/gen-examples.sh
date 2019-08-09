@@ -15,7 +15,6 @@ function cleanup {
 
 trap cleanup EXIT
 
-
 #
 # Run Director with DB
 #
