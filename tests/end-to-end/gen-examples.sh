@@ -20,7 +20,7 @@ trap cleanup EXIT
 # Run Director with DB
 #
 
-echo "Running Director with ..."
+echo "Running Director with initialized database..."
 
 cd "${SCRIPT_DIR}/../../"
 docker-compose up -d
