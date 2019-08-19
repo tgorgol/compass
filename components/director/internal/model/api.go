@@ -25,11 +25,10 @@ type APIDefinition struct {
 
 type APISpec struct {
 	// when fetch request specified, data will be automatically populated
-	Data   *string
-	Format SpecFormat
-	Type   APISpecType
-	//TODO: change it to FetchRequestID, when appropriate resolver will be added
-	FetchRequest *FetchRequest
+	Data         *string
+	Format       SpecFormat
+	Type         APISpecType
+	FetchRequestID *string
 }
 
 type APISpecType string
@@ -66,7 +65,7 @@ type APIDefinitionPage struct {
 
 func (APIDefinitionPage) IsPageable() {}
 
-func (a *APIDefinitionInput) ToAPIDefinition(id string, appID string) *APIDefinition {
+func (a *APIDefinitionInput) ToAPIDefinition(id string, appID string, fetchRequestID *string) *APIDefinition {
 	if a == nil {
 		return nil
 	}
@@ -76,7 +75,7 @@ func (a *APIDefinitionInput) ToAPIDefinition(id string, appID string) *APIDefini
 		ApplicationID: appID,
 		Name:          a.Name,
 		Description:   a.Description,
-		Spec:          a.Spec.ToAPISpec(),
+		Spec:          a.Spec.ToAPISpec(fetchRequestID),
 		TargetURL:     a.TargetURL,
 		Group:         a.Group,
 		Auths:         nil,
@@ -85,7 +84,7 @@ func (a *APIDefinitionInput) ToAPIDefinition(id string, appID string) *APIDefini
 	}
 }
 
-func (a *APISpecInput) ToAPISpec() *APISpec {
+func (a *APISpecInput) ToAPISpec(fetchRequestID *string) *APISpec {
 	if a == nil {
 		return nil
 	}
@@ -94,6 +93,6 @@ func (a *APISpecInput) ToAPISpec() *APISpec {
 		Data:         a.Data,
 		Format:       a.Format,
 		Type:         a.Type,
-		FetchRequest: a.FetchRequest.ToFetchRequest(time.Now()),
+		FetchRequestID: fetchRequestID,
 	}
 }

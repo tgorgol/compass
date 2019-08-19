@@ -38,7 +38,7 @@ func fixDetailedModelAPIDefinition(id, name, description string, group string) *
 		Data:         &data,
 		Format:       format,
 		Type:         model.APISpecTypeOpenAPI,
-		FetchRequest: &model.FetchRequest{},
+		FetchRequestID: nil,
 	}
 
 	deprecated := false
@@ -83,7 +83,6 @@ func fixDetailedGQLAPIDefinition(id, name, description string, group string) *gr
 		Data:         &data,
 		Format:       format,
 		Type:         graphql.APISpecTypeOpenAPI,
-		FetchRequest: &graphql.FetchRequest{},
 	}
 
 	deprecated := false
