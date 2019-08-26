@@ -53,6 +53,21 @@ func fixModelDocumentInput(id string) *model.DocumentInput {
 	}
 }
 
+func fixModelDocumentInputWithFetchRequest(fetchRequestURL string) *model.DocumentInput {
+	return &model.DocumentInput{
+		Title:         docTitle,
+		DisplayName:   docDisplayName,
+		Description:   docDescription,
+		Format:        model.DocumentFormatMarkdown,
+		Kind:          &docKind,
+		Data:          &docData,
+		FetchRequest: &model.FetchRequestInput{
+			URL: fetchRequestURL,
+		},
+	}
+}
+
+
 func fixGQLDocumentInput(id string) *graphql.DocumentInput {
 	return &graphql.DocumentInput{
 		Title:       docTitle,

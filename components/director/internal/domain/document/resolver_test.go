@@ -9,6 +9,7 @@ import (
 
 	"github.com/kyma-incubator/compass/components/director/internal/domain/document"
 	"github.com/kyma-incubator/compass/components/director/internal/domain/document/automock"
+	persistenceautomock "github.com/kyma-incubator/compass/components/director/internal/persistence/automock"
 	"github.com/kyma-incubator/compass/components/director/pkg/graphql"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,6 +27,8 @@ func TestResolver_AddDocument(t *testing.T) {
 
 	testCases := []struct {
 		Name             string
+		PersistenceFn    func() *persistenceautomock.PersistenceTx
+		TransactionerFn  func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner
 		ServiceFn        func() *automock.DocumentService
 		AppServiceFn     func() *automock.ApplicationService
 		ConverterFn      func() *automock.DocumentConverter
@@ -34,6 +37,18 @@ func TestResolver_AddDocument(t *testing.T) {
 	}{
 		{
 			Name: "Success",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+
+				return transact
+			},
 			ServiceFn: func() *automock.DocumentService {
 				svc := &automock.DocumentService{}
 				svc.On("Create", context.TODO(), applicationID, *modelInput).Return(id, nil).Once()
@@ -56,6 +71,18 @@ func TestResolver_AddDocument(t *testing.T) {
 		},
 		{
 			Name: "Returns error when application not exits",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+
+				return transact
+			},
 			ServiceFn: func() *automock.DocumentService {
 				svc := &automock.DocumentService{}
 				return svc
@@ -76,6 +103,18 @@ func TestResolver_AddDocument(t *testing.T) {
 		},
 		{
 			Name: "Returns error when application existence check failed",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+
+				return transact
+			},
 			ServiceFn: func() *automock.DocumentService {
 				svc := &automock.DocumentService{}
 				return svc
@@ -96,6 +135,18 @@ func TestResolver_AddDocument(t *testing.T) {
 		},
 		{
 			Name: "Returns error when document creation failed",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+
+				return transact
+			},
 			ServiceFn: func() *automock.DocumentService {
 				svc := &automock.DocumentService{}
 				svc.On("Create", context.TODO(), applicationID, *modelInput).Return("", testErr).Once()
@@ -116,6 +167,18 @@ func TestResolver_AddDocument(t *testing.T) {
 		},
 		{
 			Name: "Returns error when document retrieval failed",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+
+				return transact
+			},
 			ServiceFn: func() *automock.DocumentService {
 				svc := &automock.DocumentService{}
 				svc.On("Create", context.TODO(), applicationID, *modelInput).Return(id, nil).Once()
@@ -139,11 +202,13 @@ func TestResolver_AddDocument(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Name, func(t *testing.T) {
+			persistTx := testCase.PersistenceFn()
+			transact := testCase.TransactionerFn(persistTx)
 			svc := testCase.ServiceFn()
 			appSvc := testCase.AppServiceFn()
 			converter := testCase.ConverterFn()
 
-			resolver := document.NewResolver(svc, appSvc, nil)
+			resolver := document.NewResolver(transact, svc, appSvc, nil)
 			resolver.SetConverter(converter)
 
 			// when
@@ -175,6 +240,8 @@ func TestResolver_DeleteDocument(t *testing.T) {
 
 	testCases := []struct {
 		Name             string
+		PersistenceFn    func() *persistenceautomock.PersistenceTx
+		TransactionerFn  func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner
 		ServiceFn        func() *automock.DocumentService
 		ConverterFn      func() *automock.DocumentConverter
 		ExpectedDocument *graphql.Document
@@ -182,6 +249,18 @@ func TestResolver_DeleteDocument(t *testing.T) {
 	}{
 		{
 			Name: "Success",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+
+				return transact
+			},
 			ServiceFn: func() *automock.DocumentService {
 				svc := &automock.DocumentService{}
 				svc.On("Get", context.TODO(), id).Return(modelDocument, nil).Once()
@@ -198,6 +277,18 @@ func TestResolver_DeleteDocument(t *testing.T) {
 		},
 		{
 			Name: "Returns error when document retrieval failed",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+
+				return transact
+			},
 			ServiceFn: func() *automock.DocumentService {
 				svc := &automock.DocumentService{}
 				svc.On("Get", context.TODO(), id).Return(nil, testErr).Once()
@@ -212,6 +303,18 @@ func TestResolver_DeleteDocument(t *testing.T) {
 		},
 		{
 			Name: "Returns error when document deletion failed",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+
+				return transact
+			},
 			ServiceFn: func() *automock.DocumentService {
 				svc := &automock.DocumentService{}
 				svc.On("Get", context.TODO(), id).Return(modelDocument, nil).Once()
@@ -230,10 +333,12 @@ func TestResolver_DeleteDocument(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Name, func(t *testing.T) {
+			persistTx := testCase.PersistenceFn()
+			transact := testCase.TransactionerFn(persistTx)
 			svc := testCase.ServiceFn()
 			converter := testCase.ConverterFn()
 
-			resolver := document.NewResolver(svc, nil, nil)
+			resolver := document.NewResolver(transact, svc, nil, nil)
 			resolver.SetConverter(converter)
 
 			// when

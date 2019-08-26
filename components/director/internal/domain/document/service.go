@@ -2,15 +2,17 @@ package document
 
 import (
 	"context"
+	"fmt"
+	"github.com/kyma-incubator/compass/components/director/internal/timestamp"
 
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/internal/tenant"
 	"github.com/pkg/errors"
-	"time"
 )
 
 //go:generate mockery -name=DocumentRepository -output=automock -outpkg=automock -case=underscore
 type DocumentRepository interface {
+	Exists(ctx context.Context, tenant, id string) (bool, error)
 	GetByID(id string) (*model.Document, error)
 	ListByApplicationID(applicationID string, pageSize *int, cursor *string) (*model.DocumentPage, error)
 	Create(item *model.Document) error
@@ -30,16 +32,18 @@ type UIDService interface {
 }
 
 type service struct {
-	repo       DocumentRepository
+	repo             DocumentRepository
 	fetchRequestRepo FetchRequestRepository
-	uidService UIDService
+	uidService       UIDService
+	timestampGen     timestamp.Generator
 }
 
 func NewService(repo DocumentRepository, fetchRequestRepo FetchRequestRepository, uidService UIDService) *service {
 	return &service{
-		repo:       repo,
+		repo:             repo,
 		fetchRequestRepo: fetchRequestRepo,
-		uidService: uidService,
+		uidService:       uidService,
+		timestampGen:     timestamp.DefaultGenerator(),
 	}
 }
 
@@ -68,14 +72,14 @@ func (s *service) Create(ctx context.Context, applicationID string, in model.Doc
 	if in.FetchRequest != nil {
 		generatedID := s.uidService.Generate()
 		fetchRequestID = &generatedID
-		fetchRequestModel := in.FetchRequest.ToFetchRequest(time.Now(), tnt, *fetchRequestID, model.DocumentFetchRequestReference, id)
+		fetchRequestModel := in.FetchRequest.ToFetchRequest(s.timestampGen(), *fetchRequestID, tnt, model.DocumentFetchRequestReference, id)
 		err := s.fetchRequestRepo.Create(ctx, fetchRequestModel)
 		if err != nil {
 			return "", errors.Wrapf(err, "while creating FetchRequest for Document %s", id)
 		}
 	}
 
-	document := in.ToDocument(id, tnt,  applicationID, fetchRequestID)
+	document := in.ToDocument(id, tnt, applicationID, fetchRequestID)
 	err = s.repo.Create(document)
 	if err != nil {
 		return "", errors.Wrap(err, "while creating Document")
@@ -99,6 +103,14 @@ func (s *service) GetFetchRequest(ctx context.Context, documentID string) (*mode
 	tnt, err := tenant.LoadFromContext(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "while loading tenant from context")
+	}
+
+	exists, err := s.repo.Exists(ctx, tnt, documentID)
+	if err != nil {
+		return nil, errors.Wrap(err, "while checking if Document exists")
+	}
+	if !exists {
+		return nil, fmt.Errorf("Document with ID %s doesn't exist", documentID)
 	}
 
 	fetchRequest, err := s.fetchRequestRepo.GetByReferenceObjectID(ctx, tnt, model.DocumentFetchRequestReference, documentID)

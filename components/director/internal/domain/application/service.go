@@ -3,15 +3,14 @@ package application
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/internal/tenant"
+	"github.com/kyma-incubator/compass/components/director/internal/timestamp"
 	"github.com/kyma-incubator/compass/components/director/pkg/pagination"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 //go:generate mockery -name=ApplicationRepository -output=automock -outpkg=automock -case=underscore
@@ -100,7 +99,7 @@ type service struct {
 	labelUpsertService LabelUpsertService
 	scenariosService   ScenariosService
 	uidService         UIDService
-	timestampGen       func() time.Time
+	timestampGen       timestamp.Generator
 }
 
 func NewService(app ApplicationRepository, webhook WebhookRepository, api APIRepository, eventAPI EventAPIRepository, documentRepo DocumentRepository, runtimeRepo RuntimeRepository, labelRepo LabelRepository, fetchRequestRepo FetchRequestRepository, labelUpsertService LabelUpsertService, scenariosService ScenariosService, uidService UIDService) *service {
@@ -116,7 +115,7 @@ func NewService(app ApplicationRepository, webhook WebhookRepository, api APIRep
 		scenariosService:   scenariosService,
 		uidService:         uidService,
 		fetchRequestRepo:   fetchRequestRepo,
-		timestampGen:       func() time.Time { return time.Now() },
+		timestampGen:       timestamp.DefaultGenerator(),
 	}
 }
 
