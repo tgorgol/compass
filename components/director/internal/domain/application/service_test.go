@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/kyma-incubator/compass/components/director/internal/domain/application"
@@ -20,6 +21,7 @@ import (
 
 func TestService_Create(t *testing.T) {
 	// given
+	timestamp := time.Now()
 	testErr := errors.New("Test error")
 	modelInput := model.ApplicationInput{
 		Name: "foo.bar-not",
@@ -28,14 +30,20 @@ func TestService_Create(t *testing.T) {
 			{URL: "test.bar.com"},
 		},
 		Documents: []*model.DocumentInput{
-			{Title: "foo", Description: "test"},
+			{Title: "foo", Description: "test", FetchRequest: &model.FetchRequestInput{URL: "doc.foo.bar"}},
 			{Title: "bar", Description: "test"},
 		},
 		Apis: []*model.APIDefinitionInput{
-			{Name: "foo"}, {Name: "bar"},
+			{
+				Name: "foo",
+				Spec: &model.APISpecInput{FetchRequest: &model.FetchRequestInput{URL: "api.foo.bar"}},
+			}, {Name: "bar"},
 		},
 		EventAPIs: []*model.EventAPIDefinitionInput{
-			{Name: "foo"}, {Name: "bar"},
+			{
+				Name: "foo",
+				Spec: &model.EventAPISpecInput{FetchRequest: &model.FetchRequestInput{URL: "eventapi.foo.bar"}},
+			}, {Name: "bar"},
 		},
 		Labels: map[string]interface{}{
 			"label": "value",
@@ -102,6 +110,9 @@ func TestService_Create(t *testing.T) {
 			},
 			FetchRequestRepoFn: func() *automock.FetchRequestRepository {
 				repo := &automock.FetchRequestRepository{}
+				repo.On("Create", ctx, fixFetchRequest("doc.foo.bar", model.DocumentFetchRequestReference, timestamp)).Return(nil).Once()
+				repo.On("Create", ctx, fixFetchRequest("api.foo.bar", model.APIFetchRequestReference, timestamp)).Return(nil).Once()
+				repo.On("Create", ctx, fixFetchRequest("eventapi.foo.bar", model.EventAPIFetchRequestReference, timestamp)).Return(nil).Once()
 				return repo
 			},
 			ScenariosServiceFn: func() *automock.ScenariosService {
@@ -123,7 +134,8 @@ func TestService_Create(t *testing.T) {
 			ExpectedErr: nil,
 		},
 		{
-			Name: "Success when no labels provided",
+			Name:
+			"Success when no labels provided",
 			AppRepoFn: func() *automock.ApplicationRepository {
 				repo := &automock.ApplicationRepository{}
 				repo.On("Create", ctx, mock.MatchedBy(applicationMatcher("test", nil))).Return(nil).Once()
@@ -173,7 +185,8 @@ func TestService_Create(t *testing.T) {
 			ExpectedErr: nil,
 		},
 		{
-			Name: "Success when scenarios label provided",
+			Name:
+			"Success when scenarios label provided",
 			AppRepoFn: func() *automock.ApplicationRepository {
 				repo := &automock.ApplicationRepository{}
 				repo.On("Create", ctx, mock.MatchedBy(applicationMatcher("test", nil))).Return(nil).Once()
@@ -226,7 +239,8 @@ func TestService_Create(t *testing.T) {
 			ExpectedErr: nil,
 		},
 		{
-			Name: "Returns errors when ensuring scenarios label definition failed",
+			Name:
+			"Returns errors when ensuring scenarios label definition failed",
 			AppRepoFn: func() *automock.ApplicationRepository {
 				repo := &automock.ApplicationRepository{}
 				return repo
@@ -270,7 +284,8 @@ func TestService_Create(t *testing.T) {
 			ExpectedErr: testErr,
 		},
 		{
-			Name: "Returns error when application creation failed",
+			Name:
+			"Returns error when application creation failed",
 			AppRepoFn: func() *automock.ApplicationRepository {
 				repo := &automock.ApplicationRepository{}
 				repo.On("Create", ctx, mock.MatchedBy(appModel.ApplicationMatcherFn)).Return(testErr).Once()
@@ -328,6 +343,7 @@ func TestService_Create(t *testing.T) {
 			labelSvc := testCase.LabelServiceFn()
 			uidSvc := testCase.UIDServiceFn()
 			svc := application.NewService(appRepo, webhookRepo, apiRepo, eventAPIRepo, documentRepo, nil, nil, fetchRequestRepo, labelSvc, scenariosSvc, uidSvc)
+			svc.SetTimestampGen(func () time.Time {return timestamp})
 
 			// when
 			result, err := svc.Create(ctx, testCase.Input)
@@ -346,6 +362,7 @@ func TestService_Create(t *testing.T) {
 			apiRepo.AssertExpectations(t)
 			eventAPIRepo.AssertExpectations(t)
 			documentRepo.AssertExpectations(t)
+			fetchRequestRepo.AssertExpectations(t)
 			scenariosSvc.AssertExpectations(t)
 			uidSvc.AssertExpectations(t)
 		})
@@ -658,7 +675,7 @@ func TestService_UpdateWithInvalidNames(t *testing.T) {
 
 	for i, testCase := range testCases {
 		t.Run(fmt.Sprintf("%d: %s", i, testCase.Name), func(t *testing.T) {
-			svc := application.NewService(nil, nil, nil, nil, nil,nil, nil, nil, nil, nil, nil)
+			svc := application.NewService(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 
 			//WHEN
 			err := svc.Update(ctx, appID, testCase.Input)
@@ -734,6 +751,10 @@ func TestService_Delete(t *testing.T) {
 				repo.On("DeleteAll", ctx, tnt, model.ApplicationLabelableObject, id).Return(nil).Once()
 				return repo
 			},
+			FetchRequestRepoFn: func() *automock.FetchRequestRepository {
+				repo := &automock.FetchRequestRepository{}
+				return repo
+			},
 			InputID:            id,
 			ExpectedErrMessage: "",
 		},
@@ -769,6 +790,10 @@ func TestService_Delete(t *testing.T) {
 				repo := &automock.LabelRepository{}
 				return repo
 			},
+			FetchRequestRepoFn: func() *automock.FetchRequestRepository {
+				repo := &automock.FetchRequestRepository{}
+				return repo
+			},
 			InputID:            id,
 			ExpectedErrMessage: testErr.Error(),
 		},
@@ -800,6 +825,10 @@ func TestService_Delete(t *testing.T) {
 				repo := &automock.LabelRepository{}
 				return repo
 			},
+			FetchRequestRepoFn: func() *automock.FetchRequestRepository {
+				repo := &automock.FetchRequestRepository{}
+				return repo
+			},
 			InputID:            id,
 			ExpectedErrMessage: testErr.Error(),
 		},
@@ -828,6 +857,10 @@ func TestService_Delete(t *testing.T) {
 			},
 			LabelRepoFn: func() *automock.LabelRepository {
 				repo := &automock.LabelRepository{}
+				return repo
+			},
+			FetchRequestRepoFn: func() *automock.FetchRequestRepository {
+				repo := &automock.FetchRequestRepository{}
 				return repo
 			},
 			InputID:            id,
@@ -861,6 +894,7 @@ func TestService_Delete(t *testing.T) {
 			apiRepo.AssertExpectations(t)
 			eventAPIRepo.AssertExpectations(t)
 			documentRepo.AssertExpectations(t)
+			fetchRequestRepo.AssertExpectations(t)
 		})
 	}
 }
@@ -919,7 +953,7 @@ func TestService_Get(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			repo := testCase.RepositoryFn()
 
-			svc := application.NewService(repo, nil, nil, nil, nil, nil, nil, nil,nil, nil, nil)
+			svc := application.NewService(repo, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 
 			// when
 			app, err := svc.Get(ctx, testCase.InputID)
@@ -1004,7 +1038,7 @@ func TestService_List(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			repo := testCase.RepositoryFn()
 
-			svc := application.NewService(repo, nil, nil, nil, nil, nil, nil,nil, nil, nil, nil)
+			svc := application.NewService(repo, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 
 			// when
 			app, err := svc.List(ctx, testCase.InputLabelFilters, testCase.InputPageSize, testCase.InputCursor)
@@ -1807,4 +1841,21 @@ func contextThatHasTenant(expectedTenant string) interface{} {
 		}
 		return actualTenant == expectedTenant
 	})
+}
+
+func fixFetchRequest(url string, objectType model.FetchRequestReferenceObjectType, timestamp time.Time) *model.FetchRequest {
+	return &model.FetchRequest{
+		ID:     "foo",
+		Tenant: "tenant",
+		URL:    url,
+		Auth:   nil,
+		Mode:   "SINGLE",
+		Filter: nil,
+		Status: &model.FetchRequestStatus{
+			Condition: model.FetchRequestStatusConditionInitial,
+			Timestamp: timestamp,
+		},
+		ObjectType: objectType,
+		ObjectID:   "foo",
+	}
 }

@@ -88,18 +88,19 @@ type UIDService interface {
 }
 
 type service struct {
-	appRepo      ApplicationRepository
-	apiRepo      APIRepository
-	eventAPIRepo EventAPIRepository
-	documentRepo DocumentRepository
-	webhookRepo  WebhookRepository
-	labelRepo    LabelRepository
-	runtimeRepo  RuntimeRepository
+	appRepo          ApplicationRepository
+	apiRepo          APIRepository
+	eventAPIRepo     EventAPIRepository
+	documentRepo     DocumentRepository
+	webhookRepo      WebhookRepository
+	labelRepo        LabelRepository
+	runtimeRepo      RuntimeRepository
 	fetchRequestRepo FetchRequestRepository
 
 	labelUpsertService LabelUpsertService
 	scenariosService   ScenariosService
 	uidService         UIDService
+	timestampGen       func() time.Time
 }
 
 func NewService(app ApplicationRepository, webhook WebhookRepository, api APIRepository, eventAPI EventAPIRepository, documentRepo DocumentRepository, runtimeRepo RuntimeRepository, labelRepo LabelRepository, fetchRequestRepo FetchRequestRepository, labelUpsertService LabelUpsertService, scenariosService ScenariosService, uidService UIDService) *service {
@@ -114,7 +115,8 @@ func NewService(app ApplicationRepository, webhook WebhookRepository, api APIRep
 		labelUpsertService: labelUpsertService,
 		scenariosService:   scenariosService,
 		uidService:         uidService,
-		fetchRequestRepo: fetchRequestRepo,
+		fetchRequestRepo:   fetchRequestRepo,
+		timestampGen:       func() time.Time { return time.Now() },
 	}
 }
 
@@ -437,7 +439,7 @@ func (s *service) createRelatedResources(ctx context.Context, in model.Applicati
 		apiDefID := s.uidService.Generate()
 
 		var fetchRequestID *string
-		if item.Spec.FetchRequest != nil {
+		if item.Spec != nil && item.Spec.FetchRequest != nil {
 			fetchRequestID, err = s.createFetchRequest(ctx, tenant, item.Spec.FetchRequest, model.APIFetchRequestReference, apiDefID)
 			if err != nil {
 				return err
@@ -457,7 +459,7 @@ func (s *service) createRelatedResources(ctx context.Context, in model.Applicati
 		eventAPIDefID := s.uidService.Generate()
 
 		var fetchRequestID *string
-		if item.Spec.FetchRequest != nil {
+		if item.Spec != nil && item.Spec.FetchRequest != nil {
 			fetchRequestID, err = s.createFetchRequest(ctx, tenant, item.Spec.FetchRequest, model.EventAPIFetchRequestReference, eventAPIDefID)
 			if err != nil {
 				return err
@@ -527,7 +529,7 @@ func (s *service) createFetchRequest(ctx context.Context, tenant string, in *mod
 	}
 
 	id := s.uidService.Generate()
-	fr := in.ToFetchRequest(time.Now(), id, tenant, objectType, objectID)
+	fr := in.ToFetchRequest(s.timestampGen(), id, tenant, objectType, objectID)
 	err := s.fetchRequestRepo.Create(ctx, fr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "while creating FetchRequest for %s with ID %s", objectType, objectID)
