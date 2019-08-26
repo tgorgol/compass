@@ -12,13 +12,13 @@ type FetchRequestRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, tenant, item
-func (_m *FetchRequestRepository) Create(ctx context.Context, tenant string, item *model.FetchRequest) error {
-	ret := _m.Called(ctx, tenant, item)
+// Create provides a mock function with given fields: ctx, item
+func (_m *FetchRequestRepository) Create(ctx context.Context, item *model.FetchRequest) error {
+	ret := _m.Called(ctx, item)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *model.FetchRequest) error); ok {
-		r0 = rf(ctx, tenant, item)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.FetchRequest) error); ok {
+		r0 = rf(ctx, item)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -61,18 +61,4 @@ func (_m *FetchRequestRepository) GetByReferenceObjectID(ctx context.Context, te
 	}
 
 	return r0, r1
-}
-
-// Update provides a mock function with given fields: ctx, tenant, id, in
-func (_m *FetchRequestRepository) Update(ctx context.Context, tenant string, id string, in *model.FetchRequest) error {
-	ret := _m.Called(ctx, tenant, id, in)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, *model.FetchRequest) error); ok {
-		r0 = rf(ctx, tenant, id, in)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }

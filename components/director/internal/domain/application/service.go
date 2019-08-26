@@ -68,7 +68,7 @@ type RuntimeRepository interface {
 
 //go:generate mockery -name=FetchRequestRepository -output=automock -outpkg=automock -case=underscore
 type FetchRequestRepository interface {
-	Create(ctx context.Context, tenant string, item *model.FetchRequest) error
+	Create(ctx context.Context, item *model.FetchRequest) error
 }
 
 //go:generate mockery -name=LabelUpsertService -output=automock -outpkg=automock -case=underscore
@@ -102,7 +102,7 @@ type service struct {
 	uidService         UIDService
 }
 
-func NewService(app ApplicationRepository, webhook WebhookRepository, api APIRepository, eventAPI EventAPIRepository, documentRepo DocumentRepository, runtimeRepo RuntimeRepository, labelRepo LabelRepository, labelUpsertService LabelUpsertService, scenariosService ScenariosService, uidService UIDService) *service {
+func NewService(app ApplicationRepository, webhook WebhookRepository, api APIRepository, eventAPI EventAPIRepository, documentRepo DocumentRepository, runtimeRepo RuntimeRepository, labelRepo LabelRepository, fetchRequestRepo FetchRequestRepository, labelUpsertService LabelUpsertService, scenariosService ScenariosService, uidService UIDService) *service {
 	return &service{
 		appRepo:            app,
 		webhookRepo:        webhook,
@@ -113,7 +113,9 @@ func NewService(app ApplicationRepository, webhook WebhookRepository, api APIRep
 		labelRepo:          labelRepo,
 		labelUpsertService: labelUpsertService,
 		scenariosService:   scenariosService,
-		uidService:         uidService}
+		uidService:         uidService,
+		fetchRequestRepo: fetchRequestRepo,
+	}
 }
 
 func (s *service) List(ctx context.Context, filter []*labelfilter.LabelFilter, pageSize *int, cursor *string) (*model.ApplicationPage, error) {
@@ -526,7 +528,7 @@ func (s *service) createFetchRequest(ctx context.Context, tenant string, in *mod
 
 	id := s.uidService.Generate()
 	fr := in.ToFetchRequest(time.Now(), id, tenant, objectType, objectID)
-	err := s.fetchRequestRepo.Create(ctx, tenant, fr)
+	err := s.fetchRequestRepo.Create(ctx, fr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "while creating FetchRequest for %s with ID %s", objectType, objectID)
 	}
