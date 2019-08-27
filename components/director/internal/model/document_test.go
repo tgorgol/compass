@@ -20,40 +20,40 @@ func TestDocumentInput_ToDocument(t *testing.T) {
 	description := "foodescription"
 	title := "footitle"
 	testCases := []struct {
-		Name     string
-		Input    *model.DocumentInput
+		Name           string
+		Input          *model.DocumentInput
 		FetchRequestID *string
-		Expected *model.Document
+		Expected       *model.Document
 	}{
 		{
 			FetchRequestID: &fetchRequestID,
-			Name: "All properties given",
+			Name:           "All properties given",
 			Input: &model.DocumentInput{
-				Title:        title,
-				DisplayName:  displayName,
-				Description:  description,
-				Format:       model.DocumentFormatMarkdown,
-				Kind:         &kind,
-				Data:         &data,
+				Title:       title,
+				DisplayName: displayName,
+				Description: description,
+				Format:      model.DocumentFormatMarkdown,
+				Kind:        &kind,
+				Data:        &data,
 				FetchRequest: &model.FetchRequestInput{
 					URL: "foo.bar",
 				},
 			},
 			Expected: &model.Document{
-				ApplicationID: applicationID,
-				ID:            id,
-				Tenant: tenant,
-				Title:         title,
-				DisplayName:   displayName,
-				Description:   description,
-				Format:        model.DocumentFormatMarkdown,
-				Kind:          &kind,
-				Data:          &data,
+				ApplicationID:  applicationID,
+				ID:             id,
+				Tenant:         tenant,
+				Title:          title,
+				DisplayName:    displayName,
+				Description:    description,
+				Format:         model.DocumentFormatMarkdown,
+				Kind:           &kind,
+				Data:           &data,
 				FetchRequestID: &fetchRequestID,
 			},
 		},
 		{
-			Name: "No FetchRequest",
+			Name:           "No FetchRequest",
 			FetchRequestID: nil,
 			Input: &model.DocumentInput{
 				Title:        title,
@@ -65,15 +65,15 @@ func TestDocumentInput_ToDocument(t *testing.T) {
 				FetchRequest: nil,
 			},
 			Expected: &model.Document{
-				ApplicationID: applicationID,
-				ID:            id,
-				Tenant:        tenant,
-				Title:         title,
-				DisplayName:   displayName,
-				Description:   description,
-				Format:        model.DocumentFormatMarkdown,
-				Kind:          &kind,
-				Data:          &data,
+				ApplicationID:  applicationID,
+				ID:             id,
+				Tenant:         tenant,
+				Title:          title,
+				DisplayName:    displayName,
+				Description:    description,
+				Format:         model.DocumentFormatMarkdown,
+				Kind:           &kind,
+				Data:           &data,
 				FetchRequestID: nil,
 			},
 		},

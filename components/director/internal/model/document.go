@@ -13,8 +13,8 @@ type Document struct {
 	Description   string
 	Format        DocumentFormat
 	// for example Service Class, API etc
-	Kind         *string
-	Data         *string
+	Kind           *string
+	Data           *string
 	FetchRequestID *string
 }
 
@@ -46,15 +46,15 @@ func (d *DocumentInput) ToDocument(id, tenant, applicationID string, fetchReques
 	}
 
 	return &Document{
-		ApplicationID: applicationID,
-		ID:            id,
-		Tenant:        tenant,
-		Title:         d.Title,
-		DisplayName:   d.DisplayName,
-		Description:   d.Description,
-		Format:        d.Format,
-		Kind:          d.Kind,
-		Data:          d.Data,
-		FetchRequestID:fetchRequestID,
+		ApplicationID:  applicationID,
+		ID:             id,
+		Tenant:         tenant,
+		Title:          d.Title,
+		DisplayName:    d.DisplayName,
+		Description:    d.Description,
+		Format:         d.Format,
+		Kind:           d.Kind,
+		Data:           d.Data,
+		FetchRequestID: fetchRequestID,
 	}
 }

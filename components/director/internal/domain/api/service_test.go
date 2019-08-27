@@ -69,7 +69,7 @@ func TestService_Get(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			repo := testCase.RepositoryFn()
 
-			svc := api.NewService(repo, nil,nil)
+			svc := api.NewService(repo, nil, nil)
 
 			// when
 			document, err := svc.Get(ctx, testCase.InputID)
@@ -155,7 +155,7 @@ func TestService_List(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			repo := testCase.RepositoryFn()
 
-			svc := api.NewService(repo, nil,nil)
+			svc := api.NewService(repo, nil, nil)
 
 			// when
 			docs, err := svc.List(ctx, applicationID, testCase.InputPageSize, testCase.InputCursor)
@@ -189,12 +189,12 @@ func TestService_Create(t *testing.T) {
 	modelInput := model.APIDefinitionInput{
 		Name:      name,
 		TargetURL: targetUrl,
-		Spec:      &model.APISpecInput{
+		Spec: &model.APISpecInput{
 			FetchRequest: &model.FetchRequestInput{
 				URL: frURL,
 			},
 		},
-		Version:   &model.VersionInput{},
+		Version: &model.VersionInput{},
 	}
 
 	modelAPIDefinition := &model.APIDefinition{
@@ -202,22 +202,22 @@ func TestService_Create(t *testing.T) {
 		ApplicationID: applicationID,
 		Name:          name,
 		TargetURL:     targetUrl,
-		Spec:          &model.APISpec{
+		Spec: &model.APISpec{
 			FetchRequestID: &frID,
 		},
-		Version:       &model.Version{},
+		Version: &model.Version{},
 	}
 
 	ctx := context.TODO()
 	ctx = tenant.SaveToContext(ctx, "tenant")
 
 	testCases := []struct {
-		Name         string
-		RepositoryFn func() *automock.APIRepository
+		Name               string
+		RepositoryFn       func() *automock.APIRepository
 		FetchRequestRepoFn func() *automock.FetchRequestRepository
-		UIDServiceFn func() *automock.UIDService
-		Input        model.APIDefinitionInput
-		ExpectedErr  error
+		UIDServiceFn       func() *automock.UIDService
+		Input              model.APIDefinitionInput
+		ExpectedErr        error
 	}{
 		{
 			Name: "Success",
@@ -291,7 +291,7 @@ func TestService_Create(t *testing.T) {
 			uidService := testCase.UIDServiceFn()
 
 			svc := api.NewService(repo, fetchRequestRepo, uidService)
-			svc.SetTimestampGen(func () time.Time {return timestamp})
+			svc.SetTimestampGen(func() time.Time { return timestamp })
 
 			// when
 			result, err := svc.Create(ctx, applicationID, testCase.Input)
@@ -351,13 +351,13 @@ func TestService_Update(t *testing.T) {
 	ctx = tenant.SaveToContext(ctx, tnt)
 
 	testCases := []struct {
-		Name         string
-		RepositoryFn func() *automock.APIRepository
+		Name               string
+		RepositoryFn       func() *automock.APIRepository
 		FetchRequestRepoFn func() *automock.FetchRequestRepository
-		UIDServiceFn func() *automock.UIDService
-		Input        model.APIDefinitionInput
-		InputID      string
-		ExpectedErr  error
+		UIDServiceFn       func() *automock.UIDService
+		Input              model.APIDefinitionInput
+		InputID            string
+		ExpectedErr        error
 	}{
 		{
 			Name: "Success",
@@ -433,8 +433,8 @@ func TestService_Update(t *testing.T) {
 			fetchRequestRepo := testCase.FetchRequestRepoFn()
 			uidSvc := testCase.UIDServiceFn()
 
-			svc := api.NewService(repo,fetchRequestRepo, uidSvc)
-			svc.SetTimestampGen(func () time.Time {return timestamp})
+			svc := api.NewService(repo, fetchRequestRepo, uidSvc)
+			svc.SetTimestampGen(func() time.Time { return timestamp })
 
 			// when
 			err := svc.Update(ctx, testCase.InputID, testCase.Input)
@@ -519,7 +519,7 @@ func TestService_Delete(t *testing.T) {
 			// given
 			repo := testCase.RepositoryFn()
 
-			svc := api.NewService(repo, nil,nil)
+			svc := api.NewService(repo, nil, nil)
 
 			// when
 			err := svc.Delete(ctx, testCase.InputID)
@@ -622,7 +622,7 @@ func TestService_SetAPIAuth(t *testing.T) {
 			// given
 			repo := testCase.RepositoryFn()
 
-			svc := api.NewService(repo, nil,nil)
+			svc := api.NewService(repo, nil, nil)
 
 			// when
 			result, err := svc.SetAPIAuth(ctx, apiID, runtimeID, testCase.Input)
@@ -720,7 +720,7 @@ func TestService_DeleteAPIAuth(t *testing.T) {
 			// given
 			repo := testCase.RepositoryFn()
 
-			svc := api.NewService(repo, nil,nil)
+			svc := api.NewService(repo, nil, nil)
 
 			// when
 			result, err := svc.DeleteAPIAuth(ctx, apiID, runtimeID)
@@ -785,7 +785,7 @@ func TestService_RefetchAPISpec(t *testing.T) {
 			// given
 			repo := testCase.RepositoryFn()
 
-			svc := api.NewService(repo, nil,nil)
+			svc := api.NewService(repo, nil, nil)
 
 			// when
 			result, err := svc.RefetchAPISpec(ctx, apiID)

@@ -62,7 +62,7 @@ func TestService_Get(t *testing.T) {
 		t.Run(testCase.Name, func(t *testing.T) {
 			repo := testCase.RepositoryFn()
 
-			svc := document.NewService(repo, nil,nil)
+			svc := document.NewService(repo, nil, nil)
 
 			// when
 			document, err := svc.Get(ctx, testCase.InputID)
@@ -180,12 +180,12 @@ func TestService_Create(t *testing.T) {
 	modelDoc := modelInput.ToDocument(id, tnt, applicationID, &frID)
 
 	testCases := []struct {
-		Name         string
-		RepositoryFn func() *automock.DocumentRepository
+		Name               string
+		RepositoryFn       func() *automock.DocumentRepository
 		FetchRequestRepoFn func() *automock.FetchRequestRepository
-		UIDServiceFn func() *automock.UIDService
-		Input        model.DocumentInput
-		ExpectedErr  error
+		UIDServiceFn       func() *automock.UIDService
+		Input              model.DocumentInput
+		ExpectedErr        error
 	}{
 		{
 			Name: "Success",
@@ -257,7 +257,7 @@ func TestService_Create(t *testing.T) {
 			idSvc := testCase.UIDServiceFn()
 			fetchRequestRepo := testCase.FetchRequestRepoFn()
 			svc := document.NewService(repo, fetchRequestRepo, idSvc)
-			svc.SetTimestampGen(func () time.Time {return timestamp})
+			svc.SetTimestampGen(func() time.Time { return timestamp })
 
 			// when
 			result, err := svc.Create(ctx, applicationID, testCase.Input)
@@ -366,9 +366,9 @@ func TestService_GetFetchRequest(t *testing.T) {
 	fetchRequestModel := fixModelFetchRequest("foo", frURL, timestamp)
 
 	testCases := []struct {
-		Name               string
-		RepositoryFn       func() *automock.DocumentRepository
-		FetchRequestRepoFn func() *automock.FetchRequestRepository
+		Name                 string
+		RepositoryFn         func() *automock.DocumentRepository
+		FetchRequestRepoFn   func() *automock.FetchRequestRepository
 		InputDocumentID      string
 		ExpectedFetchRequest *model.FetchRequest
 		ExpectedErrMessage   string
@@ -418,7 +418,7 @@ func TestService_GetFetchRequest(t *testing.T) {
 				repo := &automock.FetchRequestRepository{}
 				return repo
 			},
-			InputDocumentID:      docID,
+			InputDocumentID:    docID,
 			ExpectedErrMessage: testErr.Error(),
 		},
 	}
@@ -446,4 +446,3 @@ func TestService_GetFetchRequest(t *testing.T) {
 		})
 	}
 }
-

@@ -185,11 +185,11 @@ func fixModelDocumentPage(documents []*model.Document) *model.DocumentPage {
 
 func fixGQLDocument(id string) *graphql.Document {
 	return &graphql.Document{
-		ID:           id,
-		Title:        docTitle,
-		Format:       graphql.DocumentFormatMarkdown,
-		Kind:         &docKind,
-		Data:         &docCLOB,
+		ID:     id,
+		Title:  docTitle,
+		Format: graphql.DocumentFormatMarkdown,
+		Kind:   &docKind,
+		Data:   &docCLOB,
 	}
 }
 

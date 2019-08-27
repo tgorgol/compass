@@ -2,6 +2,7 @@ package eventapi
 
 import (
 	"context"
+
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
 
 	"github.com/pkg/errors"
@@ -41,19 +42,19 @@ type ApplicationService interface {
 }
 
 type Resolver struct {
-	transact  persistence.Transactioner
-	svc       EventAPIService
-	appSvc    ApplicationService
-	converter EventAPIConverter
+	transact    persistence.Transactioner
+	svc         EventAPIService
+	appSvc      ApplicationService
+	converter   EventAPIConverter
 	frConverter FetchRequestConverter
 }
 
 func NewResolver(transact persistence.Transactioner, svc EventAPIService, appSvc ApplicationService, converter EventAPIConverter, frConverter FetchRequestConverter) *Resolver {
 	return &Resolver{
-		transact: transact,
-		svc:       svc,
-		appSvc:    appSvc,
-		converter: converter,
+		transact:    transact,
+		svc:         svc,
+		appSvc:      appSvc,
+		converter:   converter,
 		frConverter: frConverter,
 	}
 }

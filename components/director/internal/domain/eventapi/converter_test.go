@@ -19,7 +19,7 @@ import (
 
 func TestConverter_ToGraphQL(t *testing.T) {
 	// given
-	modelEventAPIDefinition := fixDetailedModelEventAPIDefinition( "foo", "Foo", "Lorem ipsum", "group")
+	modelEventAPIDefinition := fixDetailedModelEventAPIDefinition("foo", "Foo", "Lorem ipsum", "group")
 	gqlEventAPIDefinition := fixDetailedGQLEventAPIDefinition("foo", "Foo", "Lorem ipsum", "group")
 	emptyModelEventAPIDefinition := &model.EventAPIDefinition{}
 	emptyGraphQLEventAPIDefinition := &graphql.EventAPIDefinition{}

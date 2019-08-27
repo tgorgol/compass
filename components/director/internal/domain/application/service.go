@@ -3,6 +3,8 @@ package application
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/google/uuid"
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
@@ -10,7 +12,6 @@ import (
 	"github.com/kyma-incubator/compass/components/director/internal/timestamp"
 	"github.com/kyma-incubator/compass/components/director/pkg/pagination"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 //go:generate mockery -name=ApplicationRepository -output=automock -outpkg=automock -case=underscore

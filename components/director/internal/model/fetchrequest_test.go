@@ -16,17 +16,17 @@ func TestFetchRequestInput_ToFetchRequest(t *testing.T) {
 	tenant := "tnt"
 	timestamp := time.Now()
 	testCases := []struct {
-		Name         string
-		InputID string
+		Name                     string
+		InputID                  string
 		InputReferenceObjectType model.FetchRequestReferenceObjectType
-		InputReferenceObjectID string
-		InputFRInput *model.FetchRequestInput
-		Expected     *model.FetchRequest
+		InputReferenceObjectID   string
+		InputFRInput             *model.FetchRequestInput
+		Expected                 *model.FetchRequest
 	}{
 		{
-			Name: "All properties given",
-			InputID: "input-id",
-			InputReferenceObjectID: "ref-id",
+			Name:                     "All properties given",
+			InputID:                  "input-id",
+			InputReferenceObjectID:   "ref-id",
 			InputReferenceObjectType: model.APIFetchRequestReference,
 			InputFRInput: &model.FetchRequestInput{
 				URL: "foourl",
@@ -40,11 +40,11 @@ func TestFetchRequestInput_ToFetchRequest(t *testing.T) {
 				Filter: &filter,
 			},
 			Expected: &model.FetchRequest{
-				ID: "input-id",
-				ObjectID: "ref-id",
+				ID:         "input-id",
+				ObjectID:   "ref-id",
 				ObjectType: model.APIFetchRequestReference,
-				Tenant: tenant,
-				URL: "foourl",
+				Tenant:     tenant,
+				URL:        "foourl",
 				Auth: &model.Auth{
 					AdditionalHeaders: map[string][]string{
 						"foo": {"foo", "bar"},
@@ -60,17 +60,17 @@ func TestFetchRequestInput_ToFetchRequest(t *testing.T) {
 			},
 		},
 		{
-			Name:         "Empty",
-			InputID: "input-id",
+			Name:                     "Empty",
+			InputID:                  "input-id",
 			InputReferenceObjectType: model.EventAPIFetchRequestReference,
-			InputReferenceObjectID: "ref-id-2",
-			InputFRInput: &model.FetchRequestInput{},
+			InputReferenceObjectID:   "ref-id-2",
+			InputFRInput:             &model.FetchRequestInput{},
 			Expected: &model.FetchRequest{
-				ID: "input-id",
-				Tenant: tenant,
-				ObjectID: "ref-id-2",
-				ObjectType:  model.EventAPIFetchRequestReference,
-				Mode: model.FetchModeSingle,
+				ID:         "input-id",
+				Tenant:     tenant,
+				ObjectID:   "ref-id-2",
+				ObjectType: model.EventAPIFetchRequestReference,
+				Mode:       model.FetchModeSingle,
 				Status: &model.FetchRequestStatus{
 					Condition: model.FetchRequestStatusConditionInitial,
 					Timestamp: timestamp,

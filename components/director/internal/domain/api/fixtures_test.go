@@ -1,9 +1,10 @@
 package api_test
 
 import (
+	"time"
+
 	"github.com/kyma-incubator/compass/components/director/internal/domain/version"
 	"github.com/kyma-incubator/compass/components/director/pkg/strings"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/kyma-incubator/compass/components/director/internal/domain/api"
@@ -36,9 +37,9 @@ func fixDetailedModelAPIDefinition(id, name, description string, group string) *
 	format := model.SpecFormatJSON
 
 	spec := &model.APISpec{
-		Data:         &data,
-		Format:       format,
-		Type:         model.APISpecTypeOpenAPI,
+		Data:           &data,
+		Format:         format,
+		Type:           model.APISpecTypeOpenAPI,
 		FetchRequestID: nil,
 	}
 
@@ -293,12 +294,12 @@ func fixModelFetchRequest(id, url string, timestamp time.Time) *model.FetchReque
 	}
 }
 
-func fixGQLFetchRequest( url string, timestamp time.Time) *graphql.FetchRequest {
+func fixGQLFetchRequest(url string, timestamp time.Time) *graphql.FetchRequest {
 	return &graphql.FetchRequest{
 		Filter: nil,
-		Mode: graphql.FetchModeSingle,
-		Auth: nil,
-		URL: url,
+		Mode:   graphql.FetchModeSingle,
+		Auth:   nil,
+		URL:    url,
 		Status: &graphql.FetchRequestStatus{
 			Timestamp: graphql.Timestamp(timestamp),
 			Condition: graphql.FetchRequestStatusConditionInitial,

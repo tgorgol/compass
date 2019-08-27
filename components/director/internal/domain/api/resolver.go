@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+
 	"github.com/kyma-incubator/compass/components/director/internal/persistence"
 
 	"github.com/pkg/errors"
@@ -43,22 +44,22 @@ type ApplicationService interface {
 }
 
 type Resolver struct {
-	transact persistence.Transactioner
+	transact      persistence.Transactioner
 	svc           APIService
 	appSvc        ApplicationService
 	converter     APIConverter
 	authConverter AuthConverter
-	frConverter FetchRequestConverter
+	frConverter   FetchRequestConverter
 }
 
 func NewResolver(transact persistence.Transactioner, svc APIService, appSvc ApplicationService, converter APIConverter, authConverter AuthConverter, frConverter FetchRequestConverter) *Resolver {
 	return &Resolver{
-		transact: transact,
+		transact:      transact,
 		svc:           svc,
 		appSvc:        appSvc,
 		converter:     converter,
 		authConverter: authConverter,
-		frConverter:frConverter,
+		frConverter:   frConverter,
 	}
 }
 

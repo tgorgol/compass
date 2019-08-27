@@ -134,8 +134,7 @@ func TestService_Create(t *testing.T) {
 			ExpectedErr: nil,
 		},
 		{
-			Name:
-			"Success when no labels provided",
+			Name: "Success when no labels provided",
 			AppRepoFn: func() *automock.ApplicationRepository {
 				repo := &automock.ApplicationRepository{}
 				repo.On("Create", ctx, mock.MatchedBy(applicationMatcher("test", nil))).Return(nil).Once()
@@ -185,8 +184,7 @@ func TestService_Create(t *testing.T) {
 			ExpectedErr: nil,
 		},
 		{
-			Name:
-			"Success when scenarios label provided",
+			Name: "Success when scenarios label provided",
 			AppRepoFn: func() *automock.ApplicationRepository {
 				repo := &automock.ApplicationRepository{}
 				repo.On("Create", ctx, mock.MatchedBy(applicationMatcher("test", nil))).Return(nil).Once()
@@ -239,8 +237,7 @@ func TestService_Create(t *testing.T) {
 			ExpectedErr: nil,
 		},
 		{
-			Name:
-			"Returns errors when ensuring scenarios label definition failed",
+			Name: "Returns errors when ensuring scenarios label definition failed",
 			AppRepoFn: func() *automock.ApplicationRepository {
 				repo := &automock.ApplicationRepository{}
 				return repo
@@ -284,8 +281,7 @@ func TestService_Create(t *testing.T) {
 			ExpectedErr: testErr,
 		},
 		{
-			Name:
-			"Returns error when application creation failed",
+			Name: "Returns error when application creation failed",
 			AppRepoFn: func() *automock.ApplicationRepository {
 				repo := &automock.ApplicationRepository{}
 				repo.On("Create", ctx, mock.MatchedBy(appModel.ApplicationMatcherFn)).Return(testErr).Once()
@@ -343,7 +339,7 @@ func TestService_Create(t *testing.T) {
 			labelSvc := testCase.LabelServiceFn()
 			uidSvc := testCase.UIDServiceFn()
 			svc := application.NewService(appRepo, webhookRepo, apiRepo, eventAPIRepo, documentRepo, nil, nil, fetchRequestRepo, labelSvc, scenariosSvc, uidSvc)
-			svc.SetTimestampGen(func () time.Time {return timestamp})
+			svc.SetTimestampGen(func() time.Time { return timestamp })
 
 			// when
 			result, err := svc.Create(ctx, testCase.Input)

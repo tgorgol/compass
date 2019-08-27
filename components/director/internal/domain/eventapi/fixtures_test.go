@@ -1,10 +1,10 @@
 package eventapi_test
 
 import (
+	"time"
 
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/graphql"
-	"time"
 )
 
 func fixModelEventAPIDefinition(id, appID, name, description string) *model.EventAPIDefinition {
@@ -31,9 +31,9 @@ func fixDetailedModelEventAPIDefinition(id, name, description string, group stri
 
 	frID := "test"
 	spec := &model.EventAPISpec{
-		Data:         &data,
-		Format:       format,
-		Type:         model.EventAPISpecTypeAsyncAPI,
+		Data:           &data,
+		Format:         format,
+		Type:           model.EventAPISpecTypeAsyncAPI,
 		FetchRequestID: &frID,
 	}
 
@@ -170,12 +170,12 @@ func fixModelFetchRequest(id, url string, timestamp time.Time) *model.FetchReque
 	}
 }
 
-func fixGQLFetchRequest( url string, timestamp time.Time) *graphql.FetchRequest {
+func fixGQLFetchRequest(url string, timestamp time.Time) *graphql.FetchRequest {
 	return &graphql.FetchRequest{
 		Filter: nil,
-		Mode: graphql.FetchModeSingle,
-		Auth: nil,
-		URL: url,
+		Mode:   graphql.FetchModeSingle,
+		Auth:   nil,
+		URL:    url,
 		Status: &graphql.FetchRequestStatus{
 			Timestamp: graphql.Timestamp(timestamp),
 			Condition: graphql.FetchRequestStatusConditionInitial,

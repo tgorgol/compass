@@ -107,7 +107,7 @@ func (c *converter) ToEntity(in model.Document) (Entity, error) {
 	if in.FetchRequestID != nil {
 		fetchRequestID = sql.NullString{
 			String: *in.FetchRequestID,
-			Valid: true,
+			Valid:  true,
 		}
 	}
 
@@ -138,21 +138,21 @@ func (c *converter) FromEntity(in Entity) (model.Document, error) {
 	}
 
 	var fetchRequestID *string
-	if in.FetchRequestID.Valid  {
+	if in.FetchRequestID.Valid {
 		fetchRequestID = &in.FetchRequestID.String
 	}
 
 	out := model.Document{
-		ID:            in.ID,
-		ApplicationID: in.AppID,
-		Tenant:        in.TenantID,
-		Title:         in.Title,
-		DisplayName:   in.DisplayName,
-		Description:   in.Description,
-		Format:        model.DocumentFormat(in.Format),
-		Kind:          kindPtr,
-		Data:          dataPtr,
-		FetchRequestID:  fetchRequestID,
+		ID:             in.ID,
+		ApplicationID:  in.AppID,
+		Tenant:         in.TenantID,
+		Title:          in.Title,
+		DisplayName:    in.DisplayName,
+		Description:    in.Description,
+		Format:         model.DocumentFormat(in.Format),
+		Kind:           kindPtr,
+		Data:           dataPtr,
+		FetchRequestID: fetchRequestID,
 	}
 	return out, nil
 }
