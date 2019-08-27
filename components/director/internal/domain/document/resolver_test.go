@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -346,6 +347,100 @@ func TestResolver_DeleteDocument(t *testing.T) {
 
 			// then
 			assert.Equal(t, testCase.ExpectedDocument, result)
+			assert.Equal(t, testCase.ExpectedErr, err)
+
+			svc.AssertExpectations(t)
+			converter.AssertExpectations(t)
+		})
+	}
+}
+
+func TestResolver_FetchRequest(t *testing.T) {
+	// given
+	testErr := errors.New("Test error")
+
+	id := "bar"
+	url := "foo.bar"
+
+	timestamp := time.Now()
+	frModel := fixModelFetchRequest("foo", url, timestamp)
+	frGQL := fixGQLFetchRequest(url, timestamp)
+	testCases := []struct {
+		Name            string
+		PersistenceFn   func() *persistenceautomock.PersistenceTx
+		TransactionerFn func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner
+		ServiceFn       func() *automock.DocumentService
+		ConverterFn     func() *automock.FetchRequestConverter
+		ExpectedResult  *graphql.FetchRequest
+		ExpectedErr     error
+	}{
+		{
+			Name: "Success",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+				return transact
+			},
+			ServiceFn: func() *automock.DocumentService {
+				svc := &automock.DocumentService{}
+				svc.On("GetFetchRequest", context.TODO(), id).Return(frModel, nil).Once()
+				return svc
+			},
+			ConverterFn: func() *automock.FetchRequestConverter {
+				conv := &automock.FetchRequestConverter{}
+				conv.On("ToGraphQL", frModel).Return(frGQL).Once()
+				return conv
+			},
+			ExpectedResult: frGQL,
+			ExpectedErr:    nil,
+		},
+		{
+			Name: "Error",
+			PersistenceFn: func() *persistenceautomock.PersistenceTx {
+				persistTx := &persistenceautomock.PersistenceTx{}
+				persistTx.On("Commit").Return(nil).Once()
+				return persistTx
+			},
+			TransactionerFn: func(persistTx *persistenceautomock.PersistenceTx) *persistenceautomock.Transactioner {
+				transact := &persistenceautomock.Transactioner{}
+				transact.On("Begin").Return(persistTx, nil).Once()
+				transact.On("RollbackUnlessCommited", persistTx).Return().Once()
+				return transact
+			},
+			ServiceFn: func() *automock.DocumentService {
+				svc := &automock.DocumentService{}
+				svc.On("GetFetchRequest", context.TODO(), id).Return(nil, testErr).Once()
+				return svc
+			},
+			ConverterFn: func() *automock.FetchRequestConverter {
+				conv := &automock.FetchRequestConverter{}
+				return conv
+			},
+			ExpectedResult: nil,
+			ExpectedErr:    testErr,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			persistTx := testCase.PersistenceFn()
+			transact := testCase.TransactionerFn(persistTx)
+			svc := testCase.ServiceFn()
+			converter := testCase.ConverterFn()
+
+			resolver := document.NewResolver(transact, svc, nil, converter)
+
+			// when
+			result, err := resolver.FetchRequest(context.TODO(), &graphql.Document{ID: id})
+
+			// then
+			assert.Equal(t, testCase.ExpectedResult, result)
 			assert.Equal(t, testCase.ExpectedErr, err)
 
 			svc.AssertExpectations(t)

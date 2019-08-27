@@ -196,7 +196,7 @@ func TestService_Create(t *testing.T) {
 			},
 			FetchRequestRepoFn: func() *automock.FetchRequestRepository {
 				repo := &automock.FetchRequestRepository{}
-				repo.On("Create", ctx, fixFetchRequest(frID, frURL, timestamp)).Return(nil).Once()
+				repo.On("Create", ctx, fixModelFetchRequest(frID, frURL, timestamp)).Return(nil).Once()
 				return repo
 			},
 			UIDServiceFn: func() *automock.UIDService {
@@ -217,7 +217,7 @@ func TestService_Create(t *testing.T) {
 			},
 			FetchRequestRepoFn: func() *automock.FetchRequestRepository {
 				repo := &automock.FetchRequestRepository{}
-				repo.On("Create", ctx, fixFetchRequest(frID, frURL, timestamp)).Return(nil).Once()
+				repo.On("Create", ctx, fixModelFetchRequest(frID, frURL, timestamp)).Return(nil).Once()
 				return repo
 			},
 			UIDServiceFn: func() *automock.UIDService {
@@ -343,7 +343,7 @@ func TestService_GetFetchRequest(t *testing.T) {
 	frURL := "foo.bar"
 	timestamp := time.Now()
 
-	fetchRequestModel := fixFetchRequest("foo", frURL, timestamp)
+	fetchRequestModel := fixModelFetchRequest("foo", frURL, timestamp)
 
 	testCases := []struct {
 		Name               string
@@ -417,6 +417,7 @@ func TestService_GetFetchRequest(t *testing.T) {
 				require.NoError(t, err)
 				assert.Equal(t, l, testCase.ExpectedFetchRequest)
 			} else {
+				require.Error(t, err)
 				assert.Contains(t, err.Error(), testCase.ExpectedErrMessage)
 			}
 
@@ -426,19 +427,3 @@ func TestService_GetFetchRequest(t *testing.T) {
 	}
 }
 
-func fixFetchRequest(id, url string, timestamp time.Time) *model.FetchRequest {
-	return &model.FetchRequest{
-		ID:     id,
-		Tenant: "tenant",
-		URL:    url,
-		Auth:   nil,
-		Mode:   "SINGLE",
-		Filter: nil,
-		Status: &model.FetchRequestStatus{
-			Condition: model.FetchRequestStatusConditionInitial,
-			Timestamp: timestamp,
-		},
-		ObjectType: model.DocumentFetchRequestReference,
-		ObjectID:   "foo",
-	}
-}
