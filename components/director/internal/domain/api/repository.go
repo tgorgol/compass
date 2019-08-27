@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/pagination"
@@ -27,6 +28,16 @@ func (r *inMemoryRepository) GetByID(id string) (*model.APIDefinition, error) {
 	}
 
 	return api, nil
+}
+
+func (r *inMemoryRepository) Exists(ctx context.Context, tenant, id string) (bool, error) {
+	item := r.store[id]
+
+	if item == nil || item.TenantID != tenant {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // TODO: Make filtering and paging

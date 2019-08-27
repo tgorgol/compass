@@ -1,12 +1,12 @@
 package model
 
 import (
-
 	"github.com/kyma-incubator/compass/components/director/pkg/pagination"
 )
 
 type EventAPIDefinition struct {
 	ID            string
+	Tenant        string
 	ApplicationID string
 	Name          string
 	Description   *string
@@ -22,9 +22,9 @@ const (
 )
 
 type EventAPISpec struct {
-	Data         *string
-	Type         EventAPISpecType
-	Format       SpecFormat
+	Data           *string
+	Type           EventAPISpecType
+	Format         SpecFormat
 	FetchRequestID *string
 }
 
@@ -73,9 +73,9 @@ func (e *EventAPISpecInput) ToEventAPISpec(fetchRequestID *string) *EventAPISpec
 	}
 
 	return &EventAPISpec{
-		Data:         e.Data,
-		Type:         e.EventSpecType,
-		Format:       e.Format,
+		Data:           e.Data,
+		Type:           e.EventSpecType,
+		Format:         e.Format,
 		FetchRequestID: fetchRequestID,
 	}
 }

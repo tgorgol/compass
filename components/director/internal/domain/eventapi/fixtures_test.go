@@ -4,6 +4,7 @@ import (
 
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/kyma-incubator/compass/components/director/pkg/graphql"
+	"time"
 )
 
 func fixModelEventAPIDefinition(id, appID, name, description string) *model.EventAPIDefinition {
@@ -66,6 +67,7 @@ func fixDetailedGQLEventAPIDefinition(id, name, description string, group string
 		Data:         &data,
 		Format:       format,
 		Type:         graphql.EventAPISpecTypeAsyncAPI,
+		DefinitionID: id,
 	}
 
 	deprecated := false
@@ -148,5 +150,35 @@ func fixGQLEventAPIDefinitionInput(name, description string, group string) *grap
 		Group:       &group,
 		Spec:        spec,
 		Version:     version,
+	}
+}
+
+func fixModelFetchRequest(id, url string, timestamp time.Time) *model.FetchRequest {
+	return &model.FetchRequest{
+		ID:     id,
+		Tenant: "tenant",
+		URL:    url,
+		Auth:   nil,
+		Mode:   "SINGLE",
+		Filter: nil,
+		Status: &model.FetchRequestStatus{
+			Condition: model.FetchRequestStatusConditionInitial,
+			Timestamp: timestamp,
+		},
+		ObjectType: model.EventAPIFetchRequestReference,
+		ObjectID:   "foo",
+	}
+}
+
+func fixGQLFetchRequest( url string, timestamp time.Time) *graphql.FetchRequest {
+	return &graphql.FetchRequest{
+		Filter: nil,
+		Mode: graphql.FetchModeSingle,
+		Auth: nil,
+		URL: url,
+		Status: &graphql.FetchRequestStatus{
+			Timestamp: graphql.Timestamp(timestamp),
+			Condition: graphql.FetchRequestStatusConditionInitial,
+		},
 	}
 }

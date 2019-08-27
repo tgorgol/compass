@@ -1,6 +1,7 @@
 package document
 
 import (
+	"context"
 	"github.com/pkg/errors"
 
 	"github.com/kyma-incubator/compass/components/director/internal/model"
@@ -24,6 +25,17 @@ func (r *inMemoryRepository) GetByID(id string) (*model.Document, error) {
 
 	return document, nil
 }
+
+func (r *inMemoryRepository) Exists(ctx context.Context, tenant, id string) (bool, error) {
+	item := r.store[id]
+
+	if item == nil || item.Tenant != tenant {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 
 func (r *inMemoryRepository) ListAllByApplicationID(applicationID string) ([]*model.Document, error) {
 	var items []*model.Document

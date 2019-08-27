@@ -98,8 +98,6 @@ func fixGQLFetchRequest( url string, timestamp time.Time) *graphql.FetchRequest 
 	}
 }
 
-
-
 func fixGQLDocumentInput(id string) *graphql.DocumentInput {
 	return &graphql.DocumentInput{
 		Title:       docTitle,

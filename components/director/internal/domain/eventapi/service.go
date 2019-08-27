@@ -2,10 +2,10 @@ package eventapi
 
 import (
 	"context"
-	"github.com/kyma-incubator/compass/components/director/internal/tenant"
-	"time"
-
+	"fmt"
 	"github.com/kyma-incubator/compass/components/director/internal/labelfilter"
+	"github.com/kyma-incubator/compass/components/director/internal/tenant"
+	"github.com/kyma-incubator/compass/components/director/internal/timestamp"
 
 	"github.com/kyma-incubator/compass/components/director/internal/model"
 	"github.com/pkg/errors"
@@ -14,6 +14,7 @@ import (
 //go:generate mockery -name=EventAPIRepository -output=automock -outpkg=automock -case=underscore
 type EventAPIRepository interface {
 	GetByID(id string) (*model.EventAPIDefinition, error)
+	Exists(ctx context.Context, tenant, id string) (bool, error)
 	List(filter []*labelfilter.LabelFilter, pageSize *int, cursor *string) (*model.EventAPIDefinitionPage, error)
 	ListByApplicationID(applicationID string, pageSize *int, cursor *string) (*model.EventAPIDefinitionPage, error)
 	Create(item *model.EventAPIDefinition) error
@@ -39,10 +40,15 @@ type service struct {
 	eventAPIRepo     EventAPIRepository
 	fetchRequestRepo FetchRequestRepository
 	uidService       UIDService
+	timestampGen     timestamp.Generator
 }
 
 func NewService(eventAPIRepo EventAPIRepository, fetchRequestRepo FetchRequestRepository, uidService UIDService) *service {
-	return &service{eventAPIRepo: eventAPIRepo, fetchRequestRepo: fetchRequestRepo, uidService: uidService}
+	return &service{eventAPIRepo: eventAPIRepo,
+		fetchRequestRepo: fetchRequestRepo,
+		uidService:       uidService,
+		timestampGen:     timestamp.DefaultGenerator(),
+	}
 }
 
 func (s *service) List(ctx context.Context, applicationID string, pageSize *int, cursor *string) (*model.EventAPIDefinitionPage, error) {
@@ -144,7 +150,15 @@ func (s *service) GetFetchRequest(ctx context.Context, eventAPIDefID string) (*m
 		return nil, errors.Wrapf(err, "while loading tenant from context")
 	}
 
-	fetchRequest, err := s.fetchRequestRepo.GetByReferenceObjectID(ctx, tnt, model.APIFetchRequestReference, eventAPIDefID)
+	exists, err := s.eventAPIRepo.Exists(ctx, tnt, eventAPIDefID)
+	if err != nil {
+		return nil, errors.Wrap(err, "while checking if EventAPI Definition exists")
+	}
+	if !exists {
+		return nil, fmt.Errorf("EventAPI Definition with ID %s doesn't exist", eventAPIDefID)
+	}
+
+	fetchRequest, err := s.fetchRequestRepo.GetByReferenceObjectID(ctx, tnt, model.EventAPIFetchRequestReference, eventAPIDefID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "while getting FetchRequest by Event API Definition ID %s", eventAPIDefID)
 	}
@@ -158,7 +172,7 @@ func (s *service) createFetchRequest(ctx context.Context, tenant string, in *mod
 	}
 
 	id := s.uidService.Generate()
-	fr := in.ToFetchRequest(time.Now(), id, tenant, model.EventAPIFetchRequestReference, parentObjectID)
+	fr := in.ToFetchRequest(s.timestampGen(), id, tenant, model.EventAPIFetchRequestReference, parentObjectID)
 	err := s.fetchRequestRepo.Create(ctx, fr)
 	if err != nil {
 		return nil, errors.Wrapf(err, "while creating FetchRequest for %s with ID %s", model.EventAPIFetchRequestReference, parentObjectID)
